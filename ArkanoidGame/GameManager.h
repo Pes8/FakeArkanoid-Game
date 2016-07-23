@@ -11,6 +11,7 @@ public:
     void processEvent(Button pressedButton);
     Event OnButtonPressed[IM__BUTTONS_NUMBER];
 private:
-    GameManager();
     static GameManager * instance;
+    GameManager();
+    void OnQuitBtn();
 };

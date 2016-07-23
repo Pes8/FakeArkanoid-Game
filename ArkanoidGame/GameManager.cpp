@@ -11,34 +11,16 @@ GameManager * GameManager::getInstance(){
 }
 
 void GameManager::inizialization(){
-    //GameManager::quit = false;
+    OnButtonPressed[QUIT_BTN].subscribe(std::bind(&GameManager::OnQuitBtn, this));
 }
 
 void GameManager::processEvent(Button pressedButton){
-    
-    //Switch è meglio di una serie di if (anche se i compilatori sono molto intelligenti). TODO inserire riferimento a quanto detto.
-    /*switch (pressedButton) {
-    case QUIT_BTN :
-        GameManager::quit = true;
-        break;
-    case PAUSE_KEY:
-        //Fire Event PAUSE
-        break;
-    case ENTER_KEY:
-        break;
-    case LEFT_KEY:
-        break;
-    case RIGHT_KEY:
-        break;
-    case UP_KEY:
-        break;
-    case DOWN_KEY:
-        break;
-    default:
-        break;
-    }*/
     OnButtonPressed[pressedButton].fire();
 }
 
 GameManager::GameManager(){
+}
+
+void GameManager::OnQuitBtn(){
+    GameManager::quit = true;
 }
