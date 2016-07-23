@@ -17,7 +17,7 @@ void GameManager::inizialization(){
 void GameManager::processEvent(Button pressedButton){
     
     //Switch è meglio di una serie di if (anche se i compilatori sono molto intelligenti). TODO inserire riferimento a quanto detto.
-    switch (pressedButton) {
+    /*switch (pressedButton) {
     case QUIT_BTN :
         GameManager::quit = true;
         break;
@@ -36,8 +36,8 @@ void GameManager::processEvent(Button pressedButton){
         break;
     default:
         break;
-    }
-
+    }*/
+    OnButtonPressed[pressedButton].fire();
 }
 
 GameManager::GameManager(){

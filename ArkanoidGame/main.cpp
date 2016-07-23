@@ -1,19 +1,18 @@
-typedef void(*FP)();
-
+#include "Types.h"
 #include "GameManager.h"
 #include "InputManager.h"
 #include <iostream>
-
-class InputManager;
-class EventManager;
-class RenderingEngine;
-class GameLogic;
-class Physics;
+//#include <bitset>
 
 
+void OnQuitPressed() {
+    std::cout << "Premuto ESC!" << std::endl;
+}
 
 
-
+void OnEnterPressed() {
+    std::cout << "Premuto ENTER!" << std::endl;
+}
 
 int main() {
 
@@ -23,16 +22,24 @@ int main() {
     //Inizialization of all components
     gameManager->inizialization();
 
+    gameManager->OnButtonPressed[QUIT_BTN].subscribe(OnQuitPressed);
+    gameManager->OnButtonPressed[ENTER_BTN].subscribe(OnEnterPressed);
 
     //Main Cycle
     while (!GameManager::quit) {
         //step 0 : getInputKey
 
-        Button button = inputManager->getPressedButton();
+        ButtonsStatus btnS = inputManager->getButtonsPressed();
+        /*std::bitset<8> x(btnS);
+        std::cout << x << std::endl;
+        */
+        Button action = inputManager->getButtonPressed();
 
-        gameManager->processEvent(button);
+        std::cout << action << std::endl;
 
-        std::cout << "k" << std::endl;
+        gameManager->processEvent(action);
+
+        
 
         //step 1 : fireEvents
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Types.h"
 #include "InputManager.h"
 
 class GameManager{
@@ -8,6 +9,7 @@ public:
     static GameManager * getInstance();
     void inizialization();
     void processEvent(Button pressedButton);
+    Event OnButtonPressed[IM__BUTTONS_NUMBER];
 private:
     GameManager();
     static GameManager * instance;

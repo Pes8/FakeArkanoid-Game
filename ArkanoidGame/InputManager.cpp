@@ -15,28 +15,47 @@ int InputManager::Buttons[IM__BUTTONS_NUMBER] = {
     NOTHING_KEY
 };
 
-Button InputManager::getPressedButton(){
-    for (int i = 0; i < IM__BUTTONS_NUMBER; ++i) {
-        if (GetAsyncKeyState(Buttons[i]) & 0x8000) {
-            return static_cast<Button>(i);
+Button InputManager::getButtonPressed(){
+    
+    ButtonsStatus btnS = getButtonsPressed();
+    
+
+    //TODO: find a solution without if-else
+    /*for (int i = 1; i < IM__BUTTONS_NUMBER; ++i) {
+
+        bool f = btnS & i;
+
+        for (int j = i+1; j < IM__BUTTONS_NUMBER; ++j) {
+            bool curr = btnS & j;
+            bool res = (f | curr) ^ curr;
+            btnS |= (res << j);
         }
+    }*/
+
+
+    for (unsigned int i = 0; i < IM__BUTTONS_NUMBER - 1; ++i) {
+        bool pressed = (btnS & (1 << i) ) > 0; //added > 0 beacuse useless compiler warning 
+        if(pressed)
+            return static_cast<Button>(i);
     }
+
+
+    return NOTHING;
 }
 
-std::vector<Button> InputManager::getButtonsPressed(){
-    //std::memset(KeyboardStatus, 0, sizeof(KeyboardStatus));
-    //GetKeyboardState(KeyboardStatus);
-    std::vector<Button> pressedButtons;
+ButtonsStatus InputManager::getButtonsPressed(){
     
-    pressedButtons.push_back(NOTHING);
+    ButtonsStatus btnS = 0x0;
 
-    for (int i = 0; i < IM__BUTTONS_NUMBER; ++i) {
-        if (GetAsyncKeyState(Buttons[i]) & 0x8000) {
-            pressedButtons.push_back(static_cast<Button>(i));
-        }
+
+#ifdef WINDOWS
+    for (int i = 0; i < IM__BUTTONS_NUMBER - 1; ++i) {
+        btnS |= ((GetAsyncKeyState(Buttons[i]) && 0x8000) << i);
     }
+#endif // WINDOWS
+    
 
-    return pressedButtons;
+    return btnS;
 }
 
 InputManager * InputManager::getInstance(){
@@ -45,8 +64,6 @@ InputManager * InputManager::getInstance(){
     return InputManager::instance;
 }
 
-InputManager::InputManager(){
-    
-    
+InputManager::InputManager() {
 
 }
