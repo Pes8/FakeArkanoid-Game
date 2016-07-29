@@ -155,14 +155,20 @@
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="WindowsInputManager.cpp" />
+    <ClCompile Include="WindowsSystemFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Block.h" />
     <ClInclude Include="CharController.h" />
     <ClInclude Include="GameManager.h" />
+    <ClInclude Include="GraphicsManager.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="LinuxTypes.h" />
+    <ClInclude Include="SystemFactory.h" />
     <ClInclude Include="Types.h" />
-    <ClInclude Include="WindowsTypes.h" />
+    <ClInclude Include="WindowsGraphicsManager.h" />
+    <ClInclude Include="WindowsInputManager.h" />
+    <ClInclude Include="WindowsSystemFactory.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

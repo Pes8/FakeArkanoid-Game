@@ -1,28 +1,33 @@
+//My includes
 #include "Types.h"
 #include "GameManager.h"
 #include "InputManager.h"
+#include "SystemFactory.h"
+
+#ifdef WINDOWS //Includes reserved for windows builds
+#include "WindowsSystemFactory.h"
+#include <Windows.h>
+#endif // WINDOWS
+
+//C++ Includes
 #include <iostream>
 #include <chrono>
 
-//Includes reserved for windows builds
+
+
+#define FPS 120 // Frame Per Seconds
+#define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
+
+
+/*int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {*/
+int main(){
+
 #ifdef WINDOWS
-
-#endif
-
-//Includes reserved for linux builds
-#ifdef LINUX
-#include <unistd.h>
-#endif
-
-
-#define FPS 22
-#define uSPF (1000000 / FPS) //micro-seconds for frame
-
-
-int main() {
+    SystemFactory * systemFactory = new WindowsSystemFactory();
+#endif // WINDOWS
 
     GameManager * gameManager = GameManager::getInstance();
-    InputManager * inputManager = InputManager::getInstance();
+    InputManager * inputManager = systemFactory->getInputManager();
 
     //Inizialization of all components
     gameManager->inizialization();
@@ -38,7 +43,7 @@ int main() {
         Button action = inputManager->getButtonPressed();
         gameManager->processEvent(action);
 
-        
+        std::cout << "X" << std::endl;
 
         //step 1 : fireEvents
 

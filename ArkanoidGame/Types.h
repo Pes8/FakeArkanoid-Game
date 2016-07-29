@@ -4,14 +4,6 @@
 #include <functional>
 #include <vector>
 
-#ifdef WINDOWS
-#include "WindowsTypes.h"
-#elif LINUX
-#include "LinuxTypes.h"
-#elif MAC
-#include "MacTypes.h"
-#endif
-
 
 typedef void(*FP)();
 typedef std::function<void()> callback;
