@@ -44,12 +44,10 @@ int main() {
         gameManager->startCheckFPS();
 
         //step 0 : Input
-        //Button action = inputManager->getButtonPressed();
-        //gameManager->processEvent(action);
-
-        std::cerr << "X" << std::endl;
+        Button action = inputManager->getButtonPressed();
 
         //step 1 : fireEvents
+        gameManager->processEvent(action);
 
         //step 3 : Render:
         graphicsManager->render();
@@ -58,6 +56,9 @@ int main() {
         gameManager->checkFPS();
 
     }
+
+    graphicsManager->shutdown();
+
 
     return 0;
 }

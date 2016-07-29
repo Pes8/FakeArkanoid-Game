@@ -19,6 +19,7 @@ void WindowsGraphicsManager::run() {
 
 void WindowsGraphicsManager::render(){
     
+    //windows messages handling ... I'm don't know what is it ... 
     if (PeekMessage(&m_oMsg, NULL, 0, 0, PM_REMOVE)) {
         TranslateMessage(&m_oMsg);
         DispatchMessage(&m_oMsg);
@@ -129,29 +130,7 @@ void WindowsGraphicsManager::showWindow() {
 }
 
 LRESULT CALLBACK WindowsGraphicsManager::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
-    switch (umsg) {
-        // Check if a key has been pressed on the keyboard.
-        case WM_KEYDOWN:
-        {
-            // If a key is pressed send it to the input object so it can record that state.
-            int x = 10;
-            return 0;
-        }
-
-        // Check if a key has been released on the keyboard.
-        case WM_KEYUP:
-        {
-            // If a key is released then send it to the input object so it can unset the state for that key.
-            int x = 10;
-            return 0;
-        }
-
-        // Any other messages send to the default message handler as our application won't make use of them.
-        default:
-        {
-            return DefWindowProc(hwnd, umsg, wparam, lparam);
-        }
-    }
+    return DefWindowProc(hwnd, umsg, wparam, lparam);
 }
 
 
