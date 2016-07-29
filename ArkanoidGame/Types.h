@@ -4,9 +4,24 @@
 #include <functional>
 #include <vector>
 
+#define DEFAULT_WIDTH 1024
+#define DEFAULT_HEIGHT 768
+#define DEFAULT_FULLSCREEN false
+#define DEFAULT_STARTLIFES 3
+
+#define FPS 120 // Frame Per Seconds
+#define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
 
 typedef void(*FP)();
 typedef std::function<void()> callback;
+
+// struct so one day I can take the configurations from a file...
+struct GameConfig {
+    unsigned int screenWidth = DEFAULT_WIDTH;
+    unsigned int screeHeight = DEFAULT_HEIGHT;
+    unsigned int startLife = DEFAULT_STARTLIFES;
+    bool fullscreen = DEFAULT_FULLSCREEN;
+};
 
 
 enum Button {

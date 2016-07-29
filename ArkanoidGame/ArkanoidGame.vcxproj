@@ -153,8 +153,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="GraphicsManager.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="OSHelper.cpp" />
+    <ClCompile Include="WindowsGraphicsManager.cpp" />
+    <ClCompile Include="WindowsHelper.cpp" />
     <ClCompile Include="WindowsInputManager.cpp" />
     <ClCompile Include="WindowsSystemFactory.cpp" />
   </ItemGroup>
@@ -164,9 +168,11 @@
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GraphicsManager.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="OSHelper.h" />
     <ClInclude Include="SystemFactory.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="WindowsGraphicsManager.h" />
+    <ClInclude Include="WindowsHelper.h" />
     <ClInclude Include="WindowsInputManager.h" />
     <ClInclude Include="WindowsSystemFactory.h" />
   </ItemGroup>

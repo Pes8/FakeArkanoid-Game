@@ -12,7 +12,6 @@ Button WindowsInputManager::getButtonPressed() {
 
     ButtonsStatus btnS = getButtonsPressed();
 
-
     //TODO: find a solution without if-else
     /*for (int i = 1; i < IM__BUTTONS_NUMBER; ++i) {
 
@@ -25,13 +24,11 @@ Button WindowsInputManager::getButtonPressed() {
     }
     }*/
 
-
     for (unsigned int i = 0; i < IM__BUTTONS_NUMBER - 1; ++i) {
         bool pressed = (btnS & (1 << i)) > 0; //added > 0 beacuse useless compiler warning 
         if (pressed)
             return static_cast<Button>(i);
     }
-
 
     return NOTHING;
 }

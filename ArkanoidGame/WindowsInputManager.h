@@ -16,10 +16,13 @@ enum ButtonKey {
 
 class WindowsInputManager : public InputManager {
 public:
+
     virtual Button getButtonPressed();
     virtual ButtonsStatus getButtonsPressed();
     static InputManager * getInstance();
+
 protected:
+
     // MAP Button -> Key Val
     int Buttons[IM__BUTTONS_NUMBER] = {
         QUIT_KEY,
