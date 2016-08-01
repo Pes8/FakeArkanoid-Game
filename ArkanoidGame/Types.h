@@ -8,6 +8,10 @@
 #define DEFAULT_HEIGHT 768
 #define DEFAULT_FULLSCREEN false
 #define DEFAULT_STARTLIFES 3
+#define DEFAULT_VSYNC_ENABLED true
+#define DEFAULT_SCREEN_DEPTH 1000.0f
+#define DEFAULT_SCREEN_NEAR 0.1f
+
 
 #define FPS 120 // Frame Per Seconds
 #define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
@@ -20,7 +24,10 @@ struct GameConfig {
     unsigned int screenWidth = DEFAULT_WIDTH;
     unsigned int screeHeight = DEFAULT_HEIGHT;
     unsigned int startLife = DEFAULT_STARTLIFES;
+    float screenDepth = DEFAULT_SCREEN_DEPTH;
+    float screenNear = DEFAULT_SCREEN_NEAR;
     bool fullscreen = DEFAULT_FULLSCREEN;
+    bool vsyncEnabled = DEFAULT_VSYNC_ENABLED;
 };
 
 
