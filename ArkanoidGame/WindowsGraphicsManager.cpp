@@ -1,23 +1,51 @@
 #include "WindowsGraphicsManager.h"
 
-void WindowsGraphicsManager::setup(GameConfig * config) {
+
+WindowsGraphicsManager::WindowsGraphicsManager() {
+    m_o3DClass = nullptr;
+}
+
+
+bool WindowsGraphicsManager::setup(GameConfig * config) {
     this->m_bFullscreen = config->fullscreen;
     this->m_iScreenWidth = config->screenWidth;
     this->m_iScreenHeight = config->screeHeight;
+    this->m_fScreenDepth = config->screenDepth;
+    this->m_fScreenNear = config->screenNear;
+    this->m_bVSyncEnabled = config->vsyncEnabled;
+
+    //Force to use OpenGL also on windows
+    if (config->forceOpenGL_Windows) {
+        m_o3DClass = OpenGLClass::getInstance();
+    } else {
+        m_o3DClass = D3DClass::getInstance();
+    }
+
+    return m_o3DClass != nullptr;
 }
 
-void WindowsGraphicsManager::initialization(){
+bool WindowsGraphicsManager::initialization(){
     initializeWindow();
     ZeroMemory(&m_oMsg, sizeof(MSG));
+
+    // Initialize the Direct3D object.
+    bool result = m_o3DClass->initialize(m_iScreenWidth, m_iScreenHeight, m_bVSyncEnabled, m_bFullscreen, m_fScreenDepth, m_fScreenNear, m_hwnd);
+    if (!result) {
+        MessageBox(m_hwnd, "Could not initialize Direct3D", "Error", MB_OK);
+        return false;
+    }
+    return result;
 }
 
-void WindowsGraphicsManager::run() {
+bool WindowsGraphicsManager::run() {
     showWindow();
+
+    return true;
 }
 
 
 
-void WindowsGraphicsManager::render(){
+bool WindowsGraphicsManager::render(){
     
     //windows messages handling ... I'm don't know what is it ... 
     if (PeekMessage(&m_oMsg, NULL, 0, 0, PM_REMOVE)) {
@@ -26,9 +54,18 @@ void WindowsGraphicsManager::render(){
     }
 
     //now rendering
+    return m_o3DClass->render();
 }
 
-void WindowsGraphicsManager::shutdown() {
+bool WindowsGraphicsManager::shutdown() {
+
+    bool _result = true;
+
+    if (m_o3DClass) {
+        _result &= m_o3DClass->shutdown();
+        delete m_o3DClass;
+        m_o3DClass = nullptr;
+    }
 
     // Show the mouse cursor.
     ShowCursor(true);
@@ -46,6 +83,7 @@ void WindowsGraphicsManager::shutdown() {
     UnregisterClass(m_sApplicationName, m_hinstance);
     m_hinstance = NULL;
 
+    return _result;
 }
 
 GraphicsManager * WindowsGraphicsManager::getInstance(){
@@ -153,7 +191,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
         // All other messages pass to the message handler in the system class.
         default:
         {
-            return ApplicationHandle->MessageHandler(hwnd, umessage, wparam, lparam);
+            //TODO: check if is better to store another instance of the class in a gloab static var as in ##1## or do every time a reinterpret_cast. Reinterpret cast should not loss performance, right ?
+            //return ApplicationHandle->MessageHandler(hwnd, umessage, wparam, lparam);
+            return reinterpret_cast<WindowsGraphicsManager*>(WindowsGraphicsManager::getInstance())->MessageHandler(hwnd, umessage, wparam, lparam);
         }
     }
 }

@@ -110,6 +110,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>LINUX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>NotSet</ShowProgress>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -152,10 +156,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="D3DClass.cpp" />
     <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="GraphicsInterface.cpp" />
     <ClCompile Include="GraphicsManager.cpp" />
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="OpenGLClass.cpp" />
     <ClCompile Include="OSHelper.cpp" />
     <ClCompile Include="WindowsGraphicsManager.cpp" />
     <ClCompile Include="WindowsHelper.cpp" />
@@ -166,11 +173,14 @@
     <ClInclude Include="Block.h" />
     <ClInclude Include="CharController.h" />
     <ClInclude Include="GameManager.h" />
+    <ClInclude Include="GraphicsInterface.h" />
     <ClInclude Include="GraphicsManager.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="OpenGLClass.h" />
     <ClInclude Include="OSHelper.h" />
     <ClInclude Include="SystemFactory.h" />
     <ClInclude Include="Types.h" />
+    <ClInclude Include="D3DClass.h" />
     <ClInclude Include="WindowsGraphicsManager.h" />
     <ClInclude Include="WindowsHelper.h" />
     <ClInclude Include="WindowsInputManager.h" />

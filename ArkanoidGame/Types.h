@@ -11,7 +11,7 @@
 #define DEFAULT_VSYNC_ENABLED true
 #define DEFAULT_SCREEN_DEPTH 1000.0f
 #define DEFAULT_SCREEN_NEAR 0.1f
-
+#define DEFAULT_OPENGL_WINDOWS false
 
 #define FPS 120 // Frame Per Seconds
 #define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
@@ -28,6 +28,7 @@ struct GameConfig {
     float screenNear = DEFAULT_SCREEN_NEAR;
     bool fullscreen = DEFAULT_FULLSCREEN;
     bool vsyncEnabled = DEFAULT_VSYNC_ENABLED;
+    bool forceOpenGL_Windows = DEFAULT_OPENGL_WINDOWS;
 };
 
 

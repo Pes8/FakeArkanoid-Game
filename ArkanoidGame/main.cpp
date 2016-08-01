@@ -23,7 +23,7 @@ int main() {
 #ifdef WINDOWS
     SystemFactory * systemFactory = new WindowsSystemFactory();
 #endif // WINDOWS
-
+    
     GameManager * gameManager = GameManager::getInstance();
     InputManager * inputManager = systemFactory->getInputManager();
     GraphicsManager * graphicsManager = systemFactory->getGraphicsManager();
@@ -32,13 +32,15 @@ int main() {
     //Setup & Inizialization of all components
     gameManager->initialization(systemFactory);
     
+    bool not3DError = true;
+
     graphicsManager->setup(gameManager->getGameConfiguration());
-    graphicsManager->initialization();
-    graphicsManager->run();
+    not3DError = graphicsManager->initialization();
+    not3DError = graphicsManager->run();
 
 
     //Main Cycle
-    while (!GameManager::quit) {
+    while (!GameManager::quit && not3DError) {
 
         //step -1 : start clock to control FPS
         gameManager->startCheckFPS();
@@ -50,7 +52,7 @@ int main() {
         gameManager->processEvent(action);
 
         //step 3 : Render:
-        graphicsManager->render();
+        not3DError = graphicsManager->render();
 
         // final step : check FPS and wait if necessary
         gameManager->checkFPS();
@@ -60,5 +62,5 @@ int main() {
     graphicsManager->shutdown();
 
 
-    return 0;
+    return !not3DError;
 }
