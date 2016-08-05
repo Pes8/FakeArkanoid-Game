@@ -5,7 +5,8 @@
 #include "SystemFactory.h"
 #include "OSHelper.h"
 
-#ifdef WINDOWS //Includes reserved for windows builds
+//Includes reserved for windows builds
+#ifdef WINDOWS 
 #include "WindowsSystemFactory.h"
 #include <Windows.h>
 #endif // WINDOWS
@@ -13,6 +14,9 @@
 //C++ Includes
 #include <iostream>
 
+
+//TMP 4 tests
+#include "Block.h"
 
 #ifdef WINDOWS
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -23,7 +27,7 @@ int main() {
 #ifdef WINDOWS
     SystemFactory * systemFactory = new WindowsSystemFactory();
 #endif // WINDOWS
-    
+
     GameManager * gameManager = GameManager::getInstance();
     InputManager * inputManager = systemFactory->getInputManager();
     GraphicsManager * graphicsManager = systemFactory->getGraphicsManager();
@@ -37,7 +41,6 @@ int main() {
     graphicsManager->setup(gameManager->getGameConfiguration());
     not3DError = graphicsManager->initialization();
     not3DError = graphicsManager->run();
-
 
     //Main Cycle
     while (!GameManager::quit && not3DError) {

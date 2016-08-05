@@ -5,6 +5,10 @@ bool OpenGLClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHe
     return true;
 }
 
+bool OpenGLClass::loadAsset(Block * _block) {
+    return false;
+}
+
 bool OpenGLClass::run() {
 
     return true;

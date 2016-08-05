@@ -6,13 +6,67 @@ WindowsGraphicsManager::WindowsGraphicsManager() {
 }
 
 
+void Camera::render() {
+    XMFLOAT3 up, position, lookAt;
+    XMVECTOR upVector, positionVector, lookAtVector;
+    float yaw, pitch, roll;
+    XMMATRIX rotationMatrix;
+
+
+    // Setup the vector that points upwards.
+    up.x = m_afUp.x;
+    up.y = m_afUp.y;
+    up.z = m_afUp.z;
+
+    // Load it into a XMVECTOR structure.
+    upVector = XMLoadFloat3(&up);
+
+    // Setup the position of the camera in the world.
+    position.x = m_afPosition.x;
+    position.y = m_afPosition.y;
+    position.z = m_afPosition.z;
+
+    // Load it into a XMVECTOR structure.
+    positionVector = XMLoadFloat3(&position);
+
+    // Setup where the camera is looking by default.
+    lookAt.x = m_afLookAt.x;
+    lookAt.y = m_afLookAt.y;
+    lookAt.z = m_afLookAt.z;
+
+    // Load it into a XMVECTOR structure.
+    lookAtVector = XMLoadFloat3(&lookAt);
+
+    // Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
+    pitch = m_afRotation.x * 0.0174532925f;
+    yaw = m_afRotation.y * 0.0174532925f;
+    roll = m_afRotation.z * 0.0174532925f;
+
+    // Create the rotation matrix from the yaw, pitch, and roll values.
+    rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
+
+    // Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
+    lookAtVector = XMVector3TransformCoord(lookAtVector, rotationMatrix);
+    upVector = XMVector3TransformCoord(upVector, rotationMatrix);
+
+    // Translate the rotated camera position to the location of the viewer.
+    lookAtVector = XMVectorAdd(positionVector, lookAtVector);
+
+    // Finally create the view matrix from the three updated vectors.
+    m_viewMatrix = XMMatrixLookAtLH(positionVector, lookAtVector, upVector);
+}
+
+
 bool WindowsGraphicsManager::setup(GameConfig * config) {
     this->m_bFullscreen = config->fullscreen;
     this->m_iScreenWidth = config->screenWidth;
     this->m_iScreenHeight = config->screeHeight;
-    this->m_fScreenDepth = config->screenDepth;
-    this->m_fScreenNear = config->screenNear;
     this->m_bVSyncEnabled = config->vsyncEnabled;
+
+    m_oCamera.m_fFar = config->cameraFar;
+    m_oCamera.m_fNear = config->cameraNear;
+    //Copy Position, Rotation, LookAt and Up togheter
+    memcpy(&m_oCamera.m_afPosition, &config->cameraPosition, sizeof(config->cameraPosition) * 4); //Yes, the have the same order! :)
 
     //Force to use OpenGL also on windows
     if (config->forceOpenGL_Windows) {
@@ -29,11 +83,29 @@ bool WindowsGraphicsManager::initialization(){
     ZeroMemory(&m_oMsg, sizeof(MSG));
 
     // Initialize the Direct3D object.
-    bool result = m_o3DClass->initialize(m_iScreenWidth, m_iScreenHeight, m_bVSyncEnabled, m_bFullscreen, m_fScreenDepth, m_fScreenNear, m_hwnd);
+    bool result = m_o3DClass->initialize(m_iScreenWidth, m_iScreenHeight, m_bVSyncEnabled, m_bFullscreen, m_oCamera.m_fFar, m_oCamera.m_fNear, m_hwnd);
     if (!result) {
         MessageBox(m_hwnd, "Could not initialize Direct3D", "Error", MB_OK);
         return false;
     }
+
+    Block b1;
+
+    result = m_o3DClass->loadAsset(&b1);
+
+    // Create the color shader object.
+    m_ColorShader = new ColorShaderClass;
+    if (!m_ColorShader) {
+        return false;
+    }
+
+    // Initialize the color shader object.
+    result = m_ColorShader->Initialize((reinterpret_cast<D3DClass*>(m_o3DClass))->GetDevice(), m_hwnd);
+    if (!result) {
+        MessageBox(m_hwnd, "Could not initialize the color shader object.", "Error", MB_OK);
+        return false;
+    }
+
     return result;
 }
 
@@ -53,6 +125,30 @@ bool WindowsGraphicsManager::render(){
         DispatchMessage(&m_oMsg);
     }
 
+    XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+    bool result;
+
+
+    // Clear the buffers to begin the scene.
+    //m_o3DClass->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Generate the view matrix based on the camera's position.
+    m_oCamera.render();
+
+    // Get the world, view, and projection matrices from the camera and d3d objects.
+    (reinterpret_cast<D3DClass *>(m_o3DClass))->GetWorldMatrix(worldMatrix);
+    m_oCamera.GetViewMatrix(viewMatrix);
+    (reinterpret_cast<D3DClass *>(m_o3DClass))->GetProjectionMatrix(projectionMatrix);
+
+    // Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+    //m_Model->Render(m_Direct3D->GetDeviceContext());
+
+    // Render the model using the color shader.
+    result = m_ColorShader->Render((reinterpret_cast<D3DClass *>(m_o3DClass))->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix);
+    if (!result) {
+        return false;
+    }
+
     //now rendering
     return m_o3DClass->render();
 }
@@ -60,6 +156,13 @@ bool WindowsGraphicsManager::render(){
 bool WindowsGraphicsManager::shutdown() {
 
     bool _result = true;
+
+    // Release the color shader object.
+    if (m_ColorShader) {
+        m_ColorShader->Shutdown();
+        delete m_ColorShader;
+        m_ColorShader = nullptr;
+    }
 
     if (m_o3DClass) {
         _result &= m_o3DClass->shutdown();

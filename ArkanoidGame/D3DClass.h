@@ -8,6 +8,7 @@
 #include <d3dcommon.h>
 #include <dxgi.h>
 #include <DirectXMath.h>
+#include "Types.h"
 
 using namespace DirectX;
 
@@ -15,22 +16,22 @@ __declspec(align(16)) class D3DClass : public GraphicsInterface {
 public:
 
     virtual bool initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fScreenDepth, float _fScreenNear, void * m_hwnd = nullptr);
+    virtual bool loadAsset(Block * _block);
     virtual bool run();
     virtual bool render();
     virtual bool shutdown();
-
+    
     static GraphicsInterface * getInstance();
-protected:
-    D3DClass();
 
-    ID3D11Device* GetDevice();
-    ID3D11DeviceContext* GetDeviceContext();
-
+    ID3D11Device * GetDevice() const;
+    ID3D11DeviceContext * GetDeviceContext() const;
     void GetProjectionMatrix(XMMATRIX& _matrix);
     void GetWorldMatrix(XMMATRIX& _matrix);
     void GetOrthoMatrix(XMMATRIX& _matrix);
 
     void GetVideoCardInfo(char*, int&);
+protected:
+    D3DClass();
 
     virtual ~D3DClass();
 
@@ -54,9 +55,14 @@ private:
     ID3D11DepthStencilState * m_depthStencilState;
     ID3D11DepthStencilView * m_depthStencilView;
     ID3D11RasterizerState * m_rasterState;
+    ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
     XMMATRIX m_projectionMatrix;
     XMMATRIX m_worldMatrix;
     XMMATRIX m_orthoMatrix;
     char m_videoCardDescription[128];
     bool m_vsync_enabled;
+
+    bool initializeBuffers(Vertex * _vertices, unsigned long _vertexNumber, unsigned long * _indeces, unsigned long _indexNumber);
+    void renderBuffers();
+    void shutdownBuffers();
 };

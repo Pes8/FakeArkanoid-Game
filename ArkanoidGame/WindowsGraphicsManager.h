@@ -5,6 +5,13 @@
 #include "D3DClass.h"
 #include "OpenGLClass.h"
 
+#include <DirectXMath.h>
+
+using namespace DirectX;
+
+//TODO REMOVE
+#include "ColorShaderClass.h"
+
 class WindowsGraphicsManager : public GraphicsManager {
 public:
     virtual bool setup(GameConfig * config); //Get configuration from GameManager
@@ -23,8 +30,6 @@ private:
 
     unsigned int m_iScreenWidth;
     unsigned int m_iScreenHeight;
-    float m_fScreenDepth;
-    float m_fScreenNear;
     bool m_bVSyncEnabled;
     bool m_bFullscreen;
 
@@ -34,6 +39,7 @@ private:
     MSG m_oMsg;
 
     GraphicsInterface * m_o3DClass;
+    ColorShaderClass * m_ColorShader;
 };
 
 //static WindowsGraphicsManager* ApplicationHandle = 0; ##1##

@@ -15,6 +15,88 @@ D3DClass::~D3DClass() {
 
 }
 
+bool D3DClass::initializeBuffers(Vertex * _vertices, unsigned long _vertexNumber, unsigned long * _indeces, unsigned long _indexNumber) {
+    
+    D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
+    D3D11_SUBRESOURCE_DATA vertexData, indexData;
+    HRESULT result;
+    
+    // Set up the description of the static vertex buffer.
+    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    vertexBufferDesc.ByteWidth = sizeof(Vertex) * _vertexNumber;
+    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufferDesc.CPUAccessFlags = 0;
+    vertexBufferDesc.MiscFlags = 0;
+    vertexBufferDesc.StructureByteStride = 0;
+
+    // Give the subresource structure a pointer to the vertex data.
+    vertexData.pSysMem = _vertices;
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    // Now create the vertex buffer.
+    result = m_device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
+    if (FAILED(result)) {
+        return false;
+    }
+
+    // Set up the description of the static index buffer.
+    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    indexBufferDesc.ByteWidth = sizeof(unsigned long) * _indexNumber;
+    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    indexBufferDesc.CPUAccessFlags = 0;
+    indexBufferDesc.MiscFlags = 0;
+    indexBufferDesc.StructureByteStride = 0;
+
+    // Give the subresource structure a pointer to the index data.
+    indexData.pSysMem = _indeces;
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    // Create the index buffer.
+    result = m_device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
+    if (FAILED(result)) {
+        return false;
+    }
+
+    //Ora potrei cancellare i due array (_vertices, _indeces) per recuperare memoria ... conviene farlo ? 
+
+    return true;
+}
+
+void D3DClass::renderBuffers() {
+    unsigned int stride;
+    unsigned int offset;
+
+    // Set vertex buffer stride and offset.
+    stride = sizeof(Vertex);
+    offset = 0;
+
+    // Set the vertex buffer to active in the input assembler so it can be rendered.
+    m_deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+
+    // Set the index buffer to active in the input assembler so it can be rendered.
+    m_deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+    // Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
+    m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void D3DClass::shutdownBuffers() {
+    // Release the index buffer.
+    if (m_indexBuffer) {
+        m_indexBuffer->Release();
+        m_indexBuffer = nullptr;
+    }
+
+    // Release the vertex buffer.
+    if (m_vertexBuffer) {
+        m_vertexBuffer->Release();
+        m_vertexBuffer = nullptr;
+    }
+
+}
+
 bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fScreenDepth, float _fScreenNear, void * m_hwnd) {
 
     HRESULT result;
@@ -302,6 +384,10 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     return true;
 }
 
+bool D3DClass::loadAsset(Block * _block) {
+    return initializeBuffers(_block->m_aoVertices, _block->m_iVertexCount, _block->m_alIndices, _block->m_iIndexCount);
+}
+
 bool D3DClass::run() {
 
     return true;
@@ -395,11 +481,11 @@ GraphicsInterface * D3DClass::getInstance() {
 }
 
 
-ID3D11Device * D3DClass::GetDevice() {
+ID3D11Device * D3DClass::GetDevice() const{
     return m_device;
 }
 
-ID3D11DeviceContext * D3DClass::GetDeviceContext() {
+ID3D11DeviceContext * D3DClass::GetDeviceContext() const{
     return m_deviceContext;
 }
 
