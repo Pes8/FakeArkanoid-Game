@@ -13,7 +13,7 @@ public:
     const unsigned short * getTotalIndices() const;
     unsigned int getVerticesNumber() const;
     unsigned int getIndicesNumber() const;
-
+    std::vector<GenericAsset *> getObjectList() const;
 private:
     Scene();
 

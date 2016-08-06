@@ -47,18 +47,23 @@ int main() {
 
     Block b1;
     b1.loadMesh();
-    b1.setPosition({ -1.0f, -1.0f, 0.0f });
+    b1.m_vPosition = { -1.0f, -1.0f, 0.0f };
+    b1.m_vRotation = { 0.0f, 2.0f, 0.0f};
+    b1.scale = 0.5f;
     scene->addObject(&b1);
 
     Block b2;
     b2.loadMesh();
-    b2.setPosition({ 2.0f, 3.0f, 0.0f });
+    b2.m_vPosition = { 2.0f, 3.0f, 0.0f };
+    b2.m_vRotation = { 0.0f, 0.0f, 0.0f };
+    b2.scale = 2.0f;
     scene->addObject(&b2);
 
     graphicsManager->setScene(scene);
     graphicsManager->setup(gameManager->getGameConfiguration());
     not3DError = graphicsManager->initialization();
-    not3DError = graphicsManager->run();
+    if(not3DError)
+        not3DError = graphicsManager->run();
 
     //Main Cycle
     while (!GameManager::quit && not3DError) {

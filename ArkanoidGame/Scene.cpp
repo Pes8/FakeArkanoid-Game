@@ -45,4 +45,8 @@ unsigned int Scene::getIndicesNumber() const {
     return m_iIndicesNumber;
 }
 
+std::vector<GenericAsset*> Scene::getObjectList() const {
+    return m_oObjectsList;
+}
+
 Scene::Scene() {}

@@ -19,9 +19,7 @@ HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szS
     ID3DBlob* pErrorBlob;
     hr = D3DCompileFromFile(szFileName, NULL, NULL, szEntryPoint, szShaderModel, dwShaderFlags, 0, ppBlobOut, &pErrorBlob);
     if (FAILED(hr)) {
-        if (pErrorBlob != NULL)
-            OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-        SAFE_RELEASE(pErrorBlob);
+        //MessageBox(NULL, "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
         return hr;
     }
     SAFE_RELEASE(pErrorBlob);
@@ -49,32 +47,16 @@ D3DClass::~D3DClass() {
 
 }
 
-bool D3DClass::renderObjectsTogheter(Scene * _scene, int & _numDrawVertex) {
+bool D3DClass::loadMesh(GenericAsset * _object) {
     HRESULT result;
 
-    unsigned int totalVertices = _scene->getVerticesNumber();
-    _numDrawVertex = _scene->getIndicesNumber();
+    m_World = XMMatrixIdentity();
 
-    /*for (GenericAsset * _a : _scene) {
-        totalVertices += _a->m_iVertexCount;
-        totalIndices += _a->m_iIndexCount;
-    }*/
-
-    // Create vertex buffer
-    /*SimpleVertex vertices[] =
-    {
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-    };*/
+    unsigned int totalVertices = _object->m_iVertexCount;
+    unsigned int _numDrawVertex = _object->m_iIndexCount;
 
     SimpleVertex * vertices = new SimpleVertex[totalVertices];
-    memcpy(vertices, _scene->getTotalVertices(), sizeof(VertexInfo) * totalVertices);
+    memcpy(vertices, _object->m_aoVertices, sizeof(VertexInfo) * totalVertices);
 
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
@@ -95,31 +77,10 @@ bool D3DClass::renderObjectsTogheter(Scene * _scene, int & _numDrawVertex) {
     m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 
     WORD * indices = new WORD[_numDrawVertex];
-    memcpy(indices, _scene->getTotalIndices(), sizeof(WORD) * _numDrawVertex);
+    memcpy(indices, _object->m_alIndices, sizeof(WORD) * _numDrawVertex);
+    
     // Create index buffer
-    /*WORD indices[] =
-    {
-        3,1,0,
-        2,1,3,
 
-        0,5,4,
-        1,5,0,
-
-        3,4,7,
-        0,4,3,
-
-        1,6,5,
-        2,6,1,
-
-        2,7,6,
-        3,7,2,
-
-        6,4,5,
-        7,4,6,
-    };*/
-    
-    
-    
     bd.Usage = D3D11_USAGE_DEFAULT;
     bd.ByteWidth = sizeof(WORD) * _numDrawVertex;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -143,6 +104,10 @@ bool D3DClass::renderObjectsTogheter(Scene * _scene, int & _numDrawVertex) {
     result = m_pd3dDevice->CreateBuffer(&bd, NULL, &m_pConstantBuffer);
     if (FAILED(result))
         return false;
+    //Update world matrix
+    m_World *= XMMatrixTranslation(_object->m_vPosition.x, _object->m_vPosition.y, _object->m_vPosition.z);
+    m_World *= XMMatrixRotationRollPitchYaw(_object->m_vRotation.x, _object->m_vRotation.y, _object->m_vRotation.z);
+    m_World *= XMMatrixScaling(_object->scale, _object->scale, _object->scale);
 
     // Release the arrays now that the vertex and index buffers have been created and loaded.
     delete[] vertices;
@@ -150,7 +115,7 @@ bool D3DClass::renderObjectsTogheter(Scene * _scene, int & _numDrawVertex) {
 
     delete[] indices;
     indices = nullptr;
-    
+
     return true;
 }
 
@@ -354,8 +319,8 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     m_World = XMMatrixIdentity();
 
     // Initialize the projection matrix
-    m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _iScreenWidth / (FLOAT)_iScreenHeight, _fNear, _fFar);
-
+    //m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _iScreenWidth / (FLOAT)_iScreenHeight, _fNear, _fFar);
+    m_Projection = XMMatrixOrthographicLH(20.0, 20.0, _fNear, _fFar);
     return true;
 
 }
@@ -373,36 +338,45 @@ bool D3DClass::render(Scene * _scene) {
     m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
 
     //Put all objects in one array and creates buffers
-    int numVertices = 0;
-    bool res = renderObjectsTogheter(_scene, numVertices);
-    if (!res)
-        return false;
+    //int numVertices = 0;
+    /*bool res = renderObjectsTogheter(_scene, numVertices);*/
 
-    //
-    // Update variables
-    //
-    ConstantBuffer cb;
-    cb.mWorld = XMMatrixTranspose(m_World);
-    cb.mView = XMMatrixTranspose(m_View);
-    cb.mProjection = XMMatrixTranspose(m_Projection);
-    m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb, 0, 0);
+    for (GenericAsset * _asset : _scene->getObjectList()) {
+        bool res = loadMesh(_asset);
+        if (!res)
+            return false;
 
-    //
-    // Renders a triangle
-    //
-    m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
-    m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-    m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
-    m_pImmediateContext->DrawIndexed(numVertices, 0, 0);
+        //
+        // Update variables
+        //
+        ConstantBuffer cb;
+        cb.mWorld = XMMatrixTranspose(m_World);
+        cb.mView = XMMatrixTranspose(m_View);
+        cb.mProjection = XMMatrixTranspose(m_Projection);
+        m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb, 0, 0);
+
+
+        //
+        // Renders a triangle
+        //
+        m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
+        m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+        m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
+        m_pImmediateContext->DrawIndexed(_asset->m_iIndexCount, 0, 0);
+
+
+        SAFE_RELEASE(m_pIndexBuffer);
+        SAFE_RELEASE(m_pVertexBuffer);
+        SAFE_RELEASE(m_pConstantBuffer);
+    }
+    
 
     //
     // Present our back buffer to our front buffer
     //
     m_pSwapChain->Present(0, 0);
     
-    SAFE_RELEASE(m_pIndexBuffer);
-    SAFE_RELEASE(m_pVertexBuffer);
-    SAFE_RELEASE(m_pConstantBuffer);
+    
 
     return true;
 }

@@ -80,5 +80,5 @@ private:
     XMMATRIX                m_View;
     XMMATRIX                m_Projection;
 
-    bool renderObjectsTogheter(Scene * _scene, int & _numVertex);
+    bool loadMesh(GenericAsset * _object);
 };
