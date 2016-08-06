@@ -36,7 +36,12 @@ int main() {
     //Setup & Inizialization of all components
     gameManager->initialization(systemFactory);
     
+    //Events subscriptions
+    gameManager->OnButtonPressed[UP_BTN].subscribe(std::bind(&GraphicsManager::CameraGoUp, graphicsManager)); //TODO REMOVE
+
     bool not3DError = true;
+
+    
 
     graphicsManager->setup(gameManager->getGameConfiguration());
     not3DError = graphicsManager->initialization();

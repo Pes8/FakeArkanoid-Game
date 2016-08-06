@@ -1,122 +1,62 @@
 #include "D3DClass.h"
 
+
+//--------------------------------------------------------------------------------------
+// Helper for compiling shaders with D3DX11
+//--------------------------------------------------------------------------------------
+HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut) {
+    HRESULT hr = S_OK;
+
+    DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined( DEBUG ) || defined( _DEBUG )
+    // Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
+    // Setting this flag improves the shader debugging experience, but still allows 
+    // the shaders to be optimized and to run exactly the way they will run in 
+    // the release configuration of this program.
+    dwShaderFlags |= D3DCOMPILE_DEBUG;
+#endif
+
+    ID3DBlob* pErrorBlob;
+    hr = D3DCompileFromFile(szFileName, NULL, NULL, szEntryPoint, szShaderModel, dwShaderFlags, 0, ppBlobOut, &pErrorBlob);
+    if (FAILED(hr)) {
+        if (pErrorBlob != NULL)
+            OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+        if (pErrorBlob) pErrorBlob->Release();
+        return hr;
+    }
+    if (pErrorBlob) pErrorBlob->Release();
+
+    return S_OK;
+}
+
+
 D3DClass::D3DClass() {
-    m_swapChain = nullptr;
-    m_device = nullptr;
-    m_deviceContext = nullptr;
-    m_renderTargetView = nullptr;
-    m_depthStencilBuffer = nullptr;
-    m_depthStencilState = nullptr;
-    m_depthStencilView = nullptr;
-    m_rasterState = nullptr;
+    m_driverType = D3D_DRIVER_TYPE_NULL;
+    m_featureLevel = D3D_FEATURE_LEVEL_11_0;
+    m_pd3dDevice = nullptr;
+    m_pImmediateContext = nullptr;
+    m_pSwapChain = nullptr;
+    m_pRenderTargetView = nullptr;
+    m_pVertexShader = nullptr;
+    m_pPixelShader = nullptr;
+    m_pVertexLayout = nullptr;
+    m_pVertexBuffer = nullptr;
+    m_pIndexBuffer = nullptr;
+    m_pConstantBuffer = nullptr;
 }
 
 D3DClass::~D3DClass() {
 
 }
 
-bool D3DClass::initializeBuffers(Vertex * _vertices, unsigned long _vertexNumber, unsigned long * _indeces, unsigned long _indexNumber) {
+bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fFar, float _fNear, void * _HWND) {
     
-    D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-    D3D11_SUBRESOURCE_DATA vertexData, indexData;
-    HRESULT result;
-    
-    // Set up the description of the static vertex buffer.
-    vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufferDesc.ByteWidth = sizeof(Vertex) * _vertexNumber;
-    vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufferDesc.CPUAccessFlags = 0;
-    vertexBufferDesc.MiscFlags = 0;
-    vertexBufferDesc.StructureByteStride = 0;
-
-    // Give the subresource structure a pointer to the vertex data.
-    vertexData.pSysMem = _vertices;
-    vertexData.SysMemPitch = 0;
-    vertexData.SysMemSlicePitch = 0;
-
-    // Now create the vertex buffer.
-    result = m_device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
-    if (FAILED(result)) {
-        return false;
-    }
-
-    // Set up the description of the static index buffer.
-    indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    indexBufferDesc.ByteWidth = sizeof(unsigned long) * _indexNumber;
-    indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    indexBufferDesc.CPUAccessFlags = 0;
-    indexBufferDesc.MiscFlags = 0;
-    indexBufferDesc.StructureByteStride = 0;
-
-    // Give the subresource structure a pointer to the index data.
-    indexData.pSysMem = _indeces;
-    indexData.SysMemPitch = 0;
-    indexData.SysMemSlicePitch = 0;
-
-    // Create the index buffer.
-    result = m_device->CreateBuffer(&indexBufferDesc, &indexData, &m_indexBuffer);
-    if (FAILED(result)) {
-        return false;
-    }
-
-    //Ora potrei cancellare i due array (_vertices, _indeces) per recuperare memoria ... conviene farlo ? 
-
-    return true;
-}
-
-void D3DClass::renderBuffers() {
-    unsigned int stride;
-    unsigned int offset;
-
-    // Set vertex buffer stride and offset.
-    stride = sizeof(Vertex);
-    offset = 0;
-
-    // Set the vertex buffer to active in the input assembler so it can be rendered.
-    m_deviceContext->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
-
-    // Set the index buffer to active in the input assembler so it can be rendered.
-    m_deviceContext->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-    // Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-    m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-}
-
-void D3DClass::shutdownBuffers() {
-    // Release the index buffer.
-    if (m_indexBuffer) {
-        m_indexBuffer->Release();
-        m_indexBuffer = nullptr;
-    }
-
-    // Release the vertex buffer.
-    if (m_vertexBuffer) {
-        m_vertexBuffer->Release();
-        m_vertexBuffer = nullptr;
-    }
-
-}
-
-bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fScreenDepth, float _fScreenNear, void * m_hwnd) {
-
-    HRESULT result;
+    HRESULT result = true;
     IDXGIFactory * factory;
     IDXGIAdapter * adapter;
     IDXGIOutput * adapterOutput;
-    unsigned int numDisplayModes, VSyncNumerator, VSyncDenominator, stringLength;
+    unsigned int numDisplayModes, VSyncNumerator, VSyncDenominator;
     DXGI_MODE_DESC * displayModeList;
-    DXGI_ADAPTER_DESC adapterDesc;
-    int error;
-    DXGI_SWAP_CHAIN_DESC swapChainDesc;
-    // Set the feature level to DirectX 11.
-    D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
-    ID3D11Texture2D * backBufferPtr;
-    D3D11_TEXTURE2D_DESC depthBufferDesc;
-    D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
-    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-    D3D11_RASTERIZER_DESC rasterDesc;
-    D3D11_VIEWPORT viewport;
-    float fieldOfView, screenAspect;
 
     // Create a DirectX graphics interface factory.
     result = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
@@ -154,7 +94,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
         return false;
     }
 
-    // Now go through all the display modes and find the one that matches the screen width and height.
+    // Now go tresultough all the display modes and find the one that matches the screen width and height.
     // When a match is found store the numerator and denominator of the refresh rate for that monitor.
     for (unsigned int i = 0; i < numDisplayModes; ++i) {
         if (displayModeList[i].Width == _iScreenWidth) {
@@ -163,21 +103,6 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
                 VSyncDenominator = displayModeList[i].RefreshRate.Denominator;
             }
         }
-    }
-
-    // Get the adapter (video card) description.
-    result = adapter->GetDesc(&adapterDesc);
-    if (FAILED(result)) {
-        return false;
-    }
-
-    // Store the dedicated video card memory in megabytes.
-    m_videoCardMemory = adapterDesc.DedicatedVideoMemory / 1024 / 1024;
-
-    // Convert the name of the video card to a character array and store it.
-    error = wcstombs_s(&stringLength, m_videoCardDescription, 128, adapterDesc.Description, 128);
-    if (error != 0) {
-        return false;
     }
 
     // Release the display mode list.
@@ -196,19 +121,34 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     factory->Release();
     factory = nullptr;
 
-    // Initialize the swap chain description.
+
+    UINT createDeviceFlags = 0;
+#ifdef _DEBUG
+    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+    D3D_DRIVER_TYPE driverTypes[] =
+    {
+        D3D_DRIVER_TYPE_HARDWARE,
+        D3D_DRIVER_TYPE_WARP,
+        D3D_DRIVER_TYPE_REFERENCE,
+    };
+    UINT numDriverTypes = ARRAYSIZE(driverTypes);
+
+    D3D_FEATURE_LEVEL featureLevels[] =
+    {
+        D3D_FEATURE_LEVEL_11_0,
+        D3D_FEATURE_LEVEL_10_1,
+        D3D_FEATURE_LEVEL_10_0,
+    };
+    UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+
+    DXGI_SWAP_CHAIN_DESC swapChainDesc;
     ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
-
-    // Set to a single back buffer.
     swapChainDesc.BufferCount = 1;
-
-    // Set the width and height of the back buffer.
     swapChainDesc.BufferDesc.Width = _iScreenWidth;
     swapChainDesc.BufferDesc.Height = _iScreenHeight;
-
-    // Set regular 32-bit surface for the back buffer.
     swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
     // Set the refresh rate of the back buffer.
     if (_bVSyncEnabled) {
         swapChainDesc.BufferDesc.RefreshRate.Numerator = VSyncNumerator;
@@ -217,258 +157,248 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
         swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
         swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
     }
-
-    // Set the usage of the back buffer.
     swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-
-    // Set the handle for the window to render to.
-    swapChainDesc.OutputWindow = reinterpret_cast<HWND>(m_hwnd);
-
-    // Turn multisampling off.
+    swapChainDesc.OutputWindow = reinterpret_cast<HWND>(_HWND);
     swapChainDesc.SampleDesc.Count = 1;
     swapChainDesc.SampleDesc.Quality = 0;
-
-    // Set to full screen or windowed mode.
     swapChainDesc.Windowed = !_bFullscreen;
 
-    // Set the scan line ordering and scaling to unspecified.
-    swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++) {
+        m_driverType = driverTypes[driverTypeIndex];
+        result = D3D11CreateDeviceAndSwapChain(NULL, m_driverType, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
+                                           D3D11_SDK_VERSION, &swapChainDesc, &m_pSwapChain, &m_pd3dDevice, &m_featureLevel, &m_pImmediateContext);
+        if (SUCCEEDED(result))
+            break;
+    }
+    if (FAILED(result))
+        return false;
 
-    // Discard the back buffer contents after presenting.
-    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    // Create a render target view
+    ID3D11Texture2D* pBackBuffer = NULL;
+    result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+    if (FAILED(result))
+        return false;
 
-    // Don't set the advanced flags.
-    swapChainDesc.Flags = 0;
+    result = m_pd3dDevice->CreateRenderTargetView(pBackBuffer, NULL, &m_pRenderTargetView);
+    pBackBuffer->Release();
+    if (FAILED(result))
+        return false;
 
-    // Create the swap chain, Direct3D device, and Direct3D device context.
-    result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
-                                           D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
+    m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, NULL);
+
+    // Setup the viewport
+    D3D11_VIEWPORT vp;
+    vp.Width = (FLOAT)_iScreenWidth;
+    vp.Height = (FLOAT)_iScreenHeight;
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    vp.TopLeftX = 0;
+    vp.TopLeftY = 0;
+    m_pImmediateContext->RSSetViewports(1, &vp);
+
+    // Compile the vertex shader
+    ID3DBlob* pVSBlob = NULL;
+    result = CompileShaderFromFile(L"Tutorial04.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(result)) {
+        MessageBox(NULL, "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
         return false;
     }
 
-    // Get the pointer to the back buffer.
-    result = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
+    // Create the vertex shader
+    result = m_pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &m_pVertexShader);
     if (FAILED(result)) {
+        pVSBlob->Release();
         return false;
     }
 
-    // Create the render target view with the back buffer pointer.
-    result = m_device->CreateRenderTargetView(backBufferPtr, NULL, &m_renderTargetView);
+    // Define the input layout
+    D3D11_INPUT_ELEMENT_DESC layout[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    };
+    UINT numElements = ARRAYSIZE(layout);
+
+    // Create the input layout
+    result = m_pd3dDevice->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pVertexLayout);
+    pVSBlob->Release();
+    if (FAILED(result))
+        return false;
+
+    // Set the input layout
+    m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
+
+    // Compile the pixel shader
+    ID3DBlob* pPSBlob = NULL;
+    result = CompileShaderFromFile(L"Tutorial04.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(result)) {
+        MessageBox(NULL,
+                   "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
         return false;
     }
 
-    // Release pointer to the back buffer as we no longer need it.
-    backBufferPtr->Release();
-    backBufferPtr = nullptr;
-
-    // Initialize the description of the depth buffer.
-    ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
-
-    // Set up the description of the depth buffer.
-    depthBufferDesc.Width = _iScreenWidth;
-    depthBufferDesc.Height = _iScreenHeight;
-    depthBufferDesc.MipLevels = 1;
-    depthBufferDesc.ArraySize = 1;
-    depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthBufferDesc.SampleDesc.Count = 1;
-    depthBufferDesc.SampleDesc.Quality = 0;
-    depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-    depthBufferDesc.CPUAccessFlags = 0;
-    depthBufferDesc.MiscFlags = 0;
-
-    // Create the texture for the depth buffer (stencil buffer) using the filled out description.
-    result = m_device->CreateTexture2D(&depthBufferDesc, NULL, &m_depthStencilBuffer);
-    if (FAILED(result)) {
+    // Create the pixel shader
+    result = m_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &m_pPixelShader);
+    pPSBlob->Release();
+    if (FAILED(result))
         return false;
-    }
 
-    // Initialize the description of the stencil state.
-    ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-
-    // Set up the description of the stencil state.
-    depthStencilDesc.DepthEnable = true;
-    depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-
-    depthStencilDesc.StencilEnable = true;
-    depthStencilDesc.StencilReadMask = 0xFF;
-    depthStencilDesc.StencilWriteMask = 0xFF;
-
-    // Stencil operations if pixel is front-facing.
-    depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-    depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-    // Stencil operations if pixel is back-facing.
-    depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-    depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-    // Create the depth stencil state.
-    result = m_device->CreateDepthStencilState(&depthStencilDesc, &m_depthStencilState);
-    if (FAILED(result)) {
+    // Create vertex buffer
+    SimpleVertex vertices[] =
+    {
+        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+    };
+    D3D11_BUFFER_DESC bd;
+    ZeroMemory(&bd, sizeof(bd));
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(SimpleVertex) * 8;
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bd.CPUAccessFlags = 0;
+    D3D11_SUBRESOURCE_DATA InitData;
+    ZeroMemory(&InitData, sizeof(InitData));
+    InitData.pSysMem = vertices;
+    result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
+    if (FAILED(result))
         return false;
-    }
 
-    // Set the depth stencil state.
-    m_deviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
+    // Set vertex buffer
+    UINT stride = sizeof(SimpleVertex);
+    UINT offset = 0;
+    m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 
-    // Initailze the depth stencil view.
-    ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
+    // Create index buffer
+    WORD indices[] =
+    {
+        3,1,0,
+        2,1,3,
 
-    // Set up the depth stencil view description.
-    depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    depthStencilViewDesc.Texture2D.MipSlice = 0;
+        0,5,4,
+        1,5,0,
 
-    // Create the depth stencil view.
-    result = m_device->CreateDepthStencilView(m_depthStencilBuffer, &depthStencilViewDesc, &m_depthStencilView);
-    if (FAILED(result)) {
+        3,4,7,
+        0,4,3,
+
+        1,6,5,
+        2,6,1,
+
+        2,7,6,
+        3,7,2,
+
+        6,4,5,
+        7,4,6,
+    };
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(WORD) * 36;        // 36 vertices needed for 12 triangles in a triangle list
+    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bd.CPUAccessFlags = 0;
+    InitData.pSysMem = indices;
+    result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
+    if (FAILED(result))
         return false;
-    }
 
-    // Bind the render target view and depth stencil buffer to the output render pipeline.
-    m_deviceContext->OMSetRenderTargets(1, &m_renderTargetView, m_depthStencilView);
+    // Set index buffer
+    m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-    // Setup the raster description which will determine how and what polygons will be drawn.
-    rasterDesc.AntialiasedLineEnable = false;
-    rasterDesc.CullMode = D3D11_CULL_BACK;
-    rasterDesc.DepthBias = 0;
-    rasterDesc.DepthBiasClamp = 0.0f;
-    rasterDesc.DepthClipEnable = true;
-    rasterDesc.FillMode = D3D11_FILL_SOLID;
-    rasterDesc.FrontCounterClockwise = false;
-    rasterDesc.MultisampleEnable = false;
-    rasterDesc.ScissorEnable = false;
-    rasterDesc.SlopeScaledDepthBias = 0.0f;
+    // Set primitive topology
+    m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // Create the rasterizer state from the description we just filled out.
-    result = m_device->CreateRasterizerState(&rasterDesc, &m_rasterState);
-    if (FAILED(result)) {
+    // Create the constant buffer
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(ConstantBuffer);
+    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bd.CPUAccessFlags = 0;
+    result = m_pd3dDevice->CreateBuffer(&bd, NULL, &m_pConstantBuffer);
+    if (FAILED(result))
         return false;
-    }
 
-    // Now set the rasterizer state.
-    m_deviceContext->RSSetState(m_rasterState);
+    // Initialize the world matrix
+    m_World = XMMatrixIdentity();
 
-    // Setup the viewport for rendering.
-    viewport.Width = (float)_iScreenWidth;
-    viewport.Height = (float)_iScreenHeight;
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-    viewport.TopLeftX = 0.0f;
-    viewport.TopLeftY = 0.0f;
-
-    // Create the viewport.
-    m_deviceContext->RSSetViewports(1, &viewport);
-
-    // Setup the projection matrix.
-    fieldOfView = XM_PI / 4.0f;
-    screenAspect = (float)_iScreenWidth / (float)_iScreenHeight;
-
-    // Create the projection matrix for 3D rendering.
-    m_projectionMatrix = XMMatrixPerspectiveFovLH(fieldOfView, screenAspect, _fScreenNear, _fScreenDepth);
-
-    // Initialize the world matrix to the identity matrix.
-    m_worldMatrix = XMMatrixIdentity();
-
-    // Create an orthographic projection matrix for 2D rendering.
-    m_orthoMatrix = XMMatrixOrthographicLH((float)_iScreenWidth, (float)_iScreenHeight, _fScreenNear, _fScreenDepth);
+    // Initialize the projection matrix
+    m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _iScreenWidth / (FLOAT)_iScreenHeight, _fNear, _fFar);
 
     return true;
-}
 
-bool D3DClass::loadAsset(Block * _block) {
-    return initializeBuffers(_block->m_aoVertices, _block->m_iVertexCount, _block->m_alIndices, _block->m_iIndexCount);
 }
 
 bool D3DClass::run() {
-
     return true;
 }
 
 bool D3DClass::render() {
-    /*
-    // Clear the buffers to begin the scene.
-	m_D3D->BeginScene(0.5f, 0.5f, 0.5f, 1.0f);
+    
+    //
+    // Clear the back buffer
+    //
+    float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
+    m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
 
+    //
+    // Update variables
+    //
+    ConstantBuffer cb;
+    cb.mWorld = XMMatrixTranspose(m_World);
+    cb.mView = XMMatrixTranspose(m_View);
+    cb.mProjection = XMMatrixTranspose(m_Projection);
+    m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb, 0, 0);
 
-	// Present the rendered scene to the screen.
-	m_D3D->EndScene();
-    */
+    //
+    // Renders a triangle
+    //
+    m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
+    m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+    m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
+    m_pImmediateContext->DrawIndexed(36, 0, 0); // 36 vertices needed for 12 triangles in a triangle list
 
-    float color[4];
-
-    // Setup the color to clear the buffer to.
-    color[0] = 0.2f;
-    color[1] = 0.2f;
-    color[2] = 0.8f;
-    color[3] = 1.0f;
-
-    // Clear the back buffer.
-    m_deviceContext->ClearRenderTargetView(m_renderTargetView, color);
-
-    // Clear the depth buffer.
-    m_deviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-    // Present the back buffer to the screen since rendering is complete.
-    m_swapChain->Present(m_vsync_enabled, 0);
-
+    //
+    // Present our back buffer to our front buffer
+    //
+    m_pSwapChain->Present(0, 0);
+    
     return true;
 }
 
 bool D3DClass::shutdown() {
+    
+    if (m_pImmediateContext)
+        m_pImmediateContext->ClearState();
 
-    // Before shutting down set to windowed mode or when you release the swap chain it will throw an exception.
-    if (m_swapChain) {
-        m_swapChain->SetFullscreenState(false, NULL);
-    }
+    if (m_pConstantBuffer)
+        m_pConstantBuffer->Release();
 
-    if (m_rasterState) {
-        m_rasterState->Release();
-        m_rasterState = nullptr;
-    }
+    if (m_pVertexBuffer)
+        m_pVertexBuffer->Release();
 
-    if (m_depthStencilView) {
-        m_depthStencilView->Release();
-        m_depthStencilView = nullptr;
-    }
+    if (m_pIndexBuffer)
+        m_pIndexBuffer->Release();
 
-    if (m_depthStencilState) {
-        m_depthStencilState->Release();
-        m_depthStencilState = nullptr;
-    }
+    if (m_pVertexLayout)
+        m_pVertexLayout->Release();
 
-    if (m_depthStencilBuffer) {
-        m_depthStencilBuffer->Release();
-        m_depthStencilBuffer = nullptr;
-    }
+    if (m_pVertexShader)
+        m_pVertexShader->Release();
 
-    if (m_renderTargetView) {
-        m_renderTargetView->Release();
-        m_renderTargetView = nullptr;
-    }
+    if (m_pPixelShader)
+        m_pPixelShader->Release();
 
-    if (m_deviceContext) {
-        m_deviceContext->Release();
-        m_deviceContext = nullptr;
-    }
+    if (m_pRenderTargetView)
+        m_pRenderTargetView->Release();
 
-    if (m_device) {
-        m_device->Release();
-        m_device = nullptr;
-    }
+    if (m_pSwapChain)
+        m_pSwapChain->Release();
 
-    if (m_swapChain) {
-        long _error = m_swapChain->Release();
-        m_swapChain = nullptr;
-    }
+    if (m_pImmediateContext)
+        m_pImmediateContext->Release();
+
+    if (m_pd3dDevice)
+        m_pd3dDevice->Release();
 
     return true;
 }
@@ -480,28 +410,10 @@ GraphicsInterface * D3DClass::getInstance() {
     return D3DClass::instance;
 }
 
-
-ID3D11Device * D3DClass::GetDevice() const{
-    return m_device;
-}
-
-ID3D11DeviceContext * D3DClass::GetDeviceContext() const{
-    return m_deviceContext;
-}
-
-void D3DClass::GetProjectionMatrix(XMMATRIX & _matrix) {
-    _matrix = m_projectionMatrix;
-}
-
-void D3DClass::GetWorldMatrix(XMMATRIX & _matrix) {
-    _matrix = m_worldMatrix;
-}
-
-void D3DClass::GetOrthoMatrix(XMMATRIX & _matrix) {
-    _matrix = m_orthoMatrix;
-}
-
-void D3DClass::GetVideoCardInfo(char* cardName, int& memory) {
-    strcpy_s(cardName, 128, m_videoCardDescription);
-    memory = m_videoCardMemory;
+void D3DClass::setCamera(const Camera & _oCamera) {
+    
+    XMVECTOR Eye = XMVectorSet(_oCamera.m_afPosition.x, _oCamera.m_afPosition.y, _oCamera.m_afPosition.z, 0.0f);
+    XMVECTOR At = XMVectorSet(_oCamera.m_afLookAt.x, _oCamera.m_afLookAt.y, _oCamera.m_afLookAt.z, 0.0f);
+    XMVECTOR Up = XMVectorSet(_oCamera.m_afUp.x, _oCamera.m_afUp.y, _oCamera.m_afUp.z, 0.0f);
+    m_View = XMMatrixLookAtLH(Eye, At, Up);
 }

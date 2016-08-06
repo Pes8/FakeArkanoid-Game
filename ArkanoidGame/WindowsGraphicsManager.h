@@ -9,9 +9,6 @@
 
 using namespace DirectX;
 
-//TODO REMOVE
-#include "ColorShaderClass.h"
-
 class WindowsGraphicsManager : public GraphicsManager {
 public:
     virtual bool setup(GameConfig * config); //Get configuration from GameManager
@@ -19,6 +16,9 @@ public:
     virtual bool run(); //Start the window
     virtual bool render(); // Do the rendering for the actual frame
     virtual bool shutdown();
+
+
+    virtual void CameraGoUp();
 
     LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
 
@@ -39,7 +39,6 @@ private:
     MSG m_oMsg;
 
     GraphicsInterface * m_o3DClass;
-    ColorShaderClass * m_ColorShader;
 };
 
 //static WindowsGraphicsManager* ApplicationHandle = 0; ##1##

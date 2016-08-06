@@ -53,9 +53,18 @@ struct Vector4{
     float w;
 };
 
-struct Vertex{
+struct VertexInfo {
     Vector3 position;
     Vector4 color;
+};
+
+struct Camera {
+    Vector3 m_afPosition;
+    Vector3 m_afRotation;
+    Vector3 m_afLookAt;
+    Vector3 m_afUp;
+    float m_fFar;
+    float m_fNear;
 };
 
 enum Button {

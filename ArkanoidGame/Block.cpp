@@ -7,7 +7,7 @@ Block::Block() {
     m_iVertexCount = 3;
     m_iIndexCount = 3;
 
-    m_aoVertices = new Vertex[m_iVertexCount];
+    m_aoVertices = new VertexInfo[m_iVertexCount];
     m_alIndices = new unsigned long[m_iIndexCount];
 
     // Load the vertex array with data.
