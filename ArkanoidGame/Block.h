@@ -1,12 +1,9 @@
 #pragma once
 
-#include "Types.h"
+#include "GenericAsset.h"
 
-struct Block {
+struct Block : public GenericAsset{
     Block();
-    unsigned int m_iVertexCount = 0;
-    unsigned int m_iIndexCount = 0;
-    float m_afPosition[3] = { 0.0f, 0.0f, 0.0f };
-    VertexInfo * m_aoVertices = nullptr;
-    unsigned long * m_alIndices = nullptr;
+    virtual void loadMesh();
+    virtual ~Block();
 };

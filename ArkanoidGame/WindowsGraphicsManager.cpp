@@ -64,7 +64,7 @@ bool WindowsGraphicsManager::render(){
     //m_o3DClass->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
     //now rendering
-    return m_o3DClass->render();
+    return m_o3DClass->render(scene);
 }
 
 bool WindowsGraphicsManager::shutdown() {

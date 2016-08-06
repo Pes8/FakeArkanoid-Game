@@ -20,7 +20,7 @@ public:
     virtual Button getButtonPressed();
     virtual ButtonsStatus getButtonsPressed();
     static InputManager * getInstance();
-
+    virtual ~WindowsInputManager();
 protected:
 
     // MAP Button -> Key Val

@@ -14,7 +14,7 @@ bool OpenGLClass::run() {
     return true;
 }
 
-bool OpenGLClass::render() {
+bool OpenGLClass::render(Scene * _scene) {
 
     return true;
 }

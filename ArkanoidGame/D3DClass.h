@@ -8,6 +8,13 @@
 #include <DirectXMath.h>
 #include "Types.h"
 
+
+/* UTILITIES */
+#define SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; }
+
+
+
+
 using namespace DirectX;
 
 
@@ -34,7 +41,7 @@ public:
     virtual bool initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fFar, float _fNear, void * _HWND);
 
     virtual bool run();
-    virtual bool render();
+    virtual bool render(Scene * _scene);
     virtual bool shutdown();
 
     static GraphicsInterface * getInstance();
@@ -72,4 +79,6 @@ private:
     XMMATRIX                m_World;
     XMMATRIX                m_View;
     XMMATRIX                m_Projection;
+
+    bool renderObjectsTogheter(Scene * _scene, int & _numVertex);
 };

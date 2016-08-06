@@ -4,6 +4,7 @@
 #include "InputManager.h"
 #include "SystemFactory.h"
 #include "OSHelper.h"
+#include "Scene.h"
 
 //Includes reserved for windows builds
 #ifdef WINDOWS 
@@ -17,6 +18,7 @@
 
 //TMP 4 tests
 #include "Block.h"
+
 
 #ifdef WINDOWS
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -33,6 +35,8 @@ int main() {
     GraphicsManager * graphicsManager = systemFactory->getGraphicsManager();
     OSHelper * osHelper = systemFactory->getOSHelper();
 
+    Scene * scene = Scene::getInstance();
+
     //Setup & Inizialization of all components
     gameManager->initialization(systemFactory);
     
@@ -41,8 +45,17 @@ int main() {
 
     bool not3DError = true;
 
-    
+    Block b1;
+    b1.loadMesh();
+    b1.setPosition({ -1.0f, -1.0f, 0.0f });
+    scene->addObject(&b1);
 
+    Block b2;
+    b2.loadMesh();
+    b2.setPosition({ 2.0f, 3.0f, 0.0f });
+    scene->addObject(&b2);
+
+    graphicsManager->setScene(scene);
     graphicsManager->setup(gameManager->getGameConfiguration());
     not3DError = graphicsManager->initialization();
     not3DError = graphicsManager->run();
@@ -69,6 +82,13 @@ int main() {
 
     graphicsManager->shutdown();
 
+
+    SAFE_DELETE(osHelper);
+    SAFE_DELETE(scene);
+    SAFE_DELETE(inputManager);
+    SAFE_DELETE(gameManager);
+    SAFE_DELETE(graphicsManager);
+    SAFE_DELETE(systemFactory);
 
     return !not3DError;
 }

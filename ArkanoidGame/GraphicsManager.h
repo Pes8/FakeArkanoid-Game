@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Types.h"
-
+#include "Scene.h"
+#include "GenericAsset.h"
 
 class GraphicsManager {
 public:
@@ -13,8 +14,11 @@ public:
 
     virtual void CameraGoUp() = 0; //TODO remove
 
+    void setScene(Scene * _scene);
+
     static GraphicsManager * getInstance() = delete; // Problem: Abstract Factory & Singleton ... Child must implement the singleton construction
 protected:
     static GraphicsManager * instance;
     Camera m_oCamera;
+    Scene * scene;
 };

@@ -13,6 +13,7 @@ public:
 
     // List of all buttons pressed during the frame
     virtual ButtonsStatus getButtonsPressed() = 0;
+    virtual ~InputManager() = 0;
     static InputManager * getInstance() = delete; // Problem: Abstract Factory & Singleton ... Child must implement the singleton construction
 protected:
     static InputManager * instance;

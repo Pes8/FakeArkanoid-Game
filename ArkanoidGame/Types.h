@@ -17,6 +17,8 @@
 #define DEFAULT_CAMERA_LOOKAT {0.0f, 0.0f, 1.0f}
 #define DEFAULT_CAMERA_UP {0.0f, 1.0f, 0.0f}
 
+/* UTILITIES */
+#define SAFE_DELETE(x) if(x) { delete x; x = nullptr; }
 
 #define FPS 120 // Frame Per Seconds
 #define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
@@ -44,6 +46,13 @@ struct Vector3{
     float x;
     float y;
     float z;
+
+    Vector3& operator+=(const Vector3 & _b) {
+        this->x += _b.x;
+        this->y += _b.y;
+        this->z += _b.z;
+        return *this;
+    }
 };
 
 struct Vector4{

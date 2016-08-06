@@ -7,6 +7,10 @@ InputManager * WindowsInputManager::getInstance(){
     return WindowsInputManager::instance;
 }
 
+WindowsInputManager::~WindowsInputManager() {
+    instance = nullptr;
+}
+
 
 Button WindowsInputManager::getButtonPressed() {
 

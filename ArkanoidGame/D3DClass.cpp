@@ -8,7 +8,7 @@ HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szS
     HRESULT hr = S_OK;
 
     DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#if defined( DEBUG ) || defined( _DEBUG )
+#ifdef GPU_DEBUG
     // Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
     // Setting this flag improves the shader debugging experience, but still allows 
     // the shaders to be optimized and to run exactly the way they will run in 
@@ -21,10 +21,10 @@ HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szS
     if (FAILED(hr)) {
         if (pErrorBlob != NULL)
             OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-        if (pErrorBlob) pErrorBlob->Release();
+        SAFE_RELEASE(pErrorBlob);
         return hr;
     }
-    if (pErrorBlob) pErrorBlob->Release();
+    SAFE_RELEASE(pErrorBlob);
 
     return S_OK;
 }
@@ -47,6 +47,111 @@ D3DClass::D3DClass() {
 
 D3DClass::~D3DClass() {
 
+}
+
+bool D3DClass::renderObjectsTogheter(Scene * _scene, int & _numDrawVertex) {
+    HRESULT result;
+
+    unsigned int totalVertices = _scene->getVerticesNumber();
+    _numDrawVertex = _scene->getIndicesNumber();
+
+    /*for (GenericAsset * _a : _scene) {
+        totalVertices += _a->m_iVertexCount;
+        totalIndices += _a->m_iIndexCount;
+    }*/
+
+    // Create vertex buffer
+    /*SimpleVertex vertices[] =
+    {
+        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
+        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
+        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+    };*/
+
+    SimpleVertex * vertices = new SimpleVertex[totalVertices];
+    memcpy(vertices, _scene->getTotalVertices(), sizeof(VertexInfo) * totalVertices);
+
+    D3D11_BUFFER_DESC bd;
+    ZeroMemory(&bd, sizeof(bd));
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(SimpleVertex) * totalVertices;
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bd.CPUAccessFlags = 0;
+    D3D11_SUBRESOURCE_DATA InitData;
+    ZeroMemory(&InitData, sizeof(InitData));
+    InitData.pSysMem = vertices;
+    result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
+    if (FAILED(result))
+        return false;
+
+    // Set vertex buffer
+    UINT stride = sizeof(SimpleVertex);
+    UINT offset = 0;
+    m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+
+    WORD * indices = new WORD[_numDrawVertex];
+    memcpy(indices, _scene->getTotalIndices(), sizeof(WORD) * _numDrawVertex);
+    // Create index buffer
+    /*WORD indices[] =
+    {
+        3,1,0,
+        2,1,3,
+
+        0,5,4,
+        1,5,0,
+
+        3,4,7,
+        0,4,3,
+
+        1,6,5,
+        2,6,1,
+
+        2,7,6,
+        3,7,2,
+
+        6,4,5,
+        7,4,6,
+    };*/
+    
+    
+    
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(WORD) * _numDrawVertex;
+    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bd.CPUAccessFlags = 0;
+    InitData.pSysMem = indices;
+    result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
+    if (FAILED(result))
+        return false;
+
+    // Set index buffer
+    m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+    // Set primitive topology
+    m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // Create the constant buffer
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(ConstantBuffer);
+    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bd.CPUAccessFlags = 0;
+    result = m_pd3dDevice->CreateBuffer(&bd, NULL, &m_pConstantBuffer);
+    if (FAILED(result))
+        return false;
+
+    // Release the arrays now that the vertex and index buffers have been created and loaded.
+    delete[] vertices;
+    vertices = nullptr;
+
+    delete[] indices;
+    indices = nullptr;
+    
+    return true;
 }
 
 bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fFar, float _fNear, void * _HWND) {
@@ -123,7 +228,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
 
 
     UINT createDeviceFlags = 0;
-#ifdef _DEBUG
+#ifdef GPU_DEBUG
     createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
@@ -198,7 +303,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
 
     // Compile the vertex shader
     ID3DBlob* pVSBlob = NULL;
-    result = CompileShaderFromFile(L"Tutorial04.fx", "VS", "vs_4_0", &pVSBlob);
+    result = CompileShaderFromFile(L"SimpleShader.fx", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(result)) {
         MessageBox(NULL, "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
         return false;
@@ -230,7 +335,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
 
     // Compile the pixel shader
     ID3DBlob* pPSBlob = NULL;
-    result = CompileShaderFromFile(L"Tutorial04.fx", "PS", "ps_4_0", &pPSBlob);
+    result = CompileShaderFromFile(L"SimpleShader.fx", "PS", "ps_4_0", &pPSBlob);
     if (FAILED(result)) {
         MessageBox(NULL,
                    "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
@@ -243,80 +348,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     if (FAILED(result))
         return false;
 
-    // Create vertex buffer
-    SimpleVertex vertices[] =
-    {
-        { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-        { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-        { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
-    };
-    D3D11_BUFFER_DESC bd;
-    ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(SimpleVertex) * 8;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-    D3D11_SUBRESOURCE_DATA InitData;
-    ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = vertices;
-    result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
-    if (FAILED(result))
-        return false;
-
-    // Set vertex buffer
-    UINT stride = sizeof(SimpleVertex);
-    UINT offset = 0;
-    m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-
-    // Create index buffer
-    WORD indices[] =
-    {
-        3,1,0,
-        2,1,3,
-
-        0,5,4,
-        1,5,0,
-
-        3,4,7,
-        0,4,3,
-
-        1,6,5,
-        2,6,1,
-
-        2,7,6,
-        3,7,2,
-
-        6,4,5,
-        7,4,6,
-    };
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(WORD) * 36;        // 36 vertices needed for 12 triangles in a triangle list
-    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.CPUAccessFlags = 0;
-    InitData.pSysMem = indices;
-    result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
-    if (FAILED(result))
-        return false;
-
-    // Set index buffer
-    m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-    // Set primitive topology
-    m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    // Create the constant buffer
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(ConstantBuffer);
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    result = m_pd3dDevice->CreateBuffer(&bd, NULL, &m_pConstantBuffer);
-    if (FAILED(result))
-        return false;
+    
 
     // Initialize the world matrix
     m_World = XMMatrixIdentity();
@@ -332,13 +364,19 @@ bool D3DClass::run() {
     return true;
 }
 
-bool D3DClass::render() {
+bool D3DClass::render(Scene * _scene) {
     
     //
     // Clear the back buffer
     //
     float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
     m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
+
+    //Put all objects in one array and creates buffers
+    int numVertices = 0;
+    bool res = renderObjectsTogheter(_scene, numVertices);
+    if (!res)
+        return false;
 
     //
     // Update variables
@@ -355,50 +393,62 @@ bool D3DClass::render() {
     m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
     m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
     m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
-    m_pImmediateContext->DrawIndexed(36, 0, 0); // 36 vertices needed for 12 triangles in a triangle list
+    m_pImmediateContext->DrawIndexed(numVertices, 0, 0);
 
     //
     // Present our back buffer to our front buffer
     //
     m_pSwapChain->Present(0, 0);
     
+    SAFE_RELEASE(m_pIndexBuffer);
+    SAFE_RELEASE(m_pVertexBuffer);
+    SAFE_RELEASE(m_pConstantBuffer);
+
     return true;
 }
 
 bool D3DClass::shutdown() {
-    
-    if (m_pImmediateContext)
+
+    SAFE_RELEASE(m_pIndexBuffer);
+    SAFE_RELEASE(m_pVertexBuffer);
+    SAFE_RELEASE(m_pConstantBuffer);
+
+    if (m_pImmediateContext) {
         m_pImmediateContext->ClearState();
+        m_pImmediateContext->Flush();
+    }
 
-    if (m_pConstantBuffer)
-        m_pConstantBuffer->Release();
+    SAFE_RELEASE(m_pConstantBuffer);
 
-    if (m_pVertexBuffer)
-        m_pVertexBuffer->Release();
+    SAFE_RELEASE(m_pVertexBuffer);
 
-    if (m_pIndexBuffer)
-        m_pIndexBuffer->Release();
+    SAFE_RELEASE(m_pIndexBuffer);
 
-    if (m_pVertexLayout)
-        m_pVertexLayout->Release();
+    SAFE_RELEASE(m_pVertexLayout);
 
-    if (m_pVertexShader)
-        m_pVertexShader->Release();
+    SAFE_RELEASE(m_pVertexShader);
 
-    if (m_pPixelShader)
-        m_pPixelShader->Release();
+    SAFE_RELEASE(m_pPixelShader);
 
-    if (m_pRenderTargetView)
-        m_pRenderTargetView->Release();
+    SAFE_RELEASE(m_pRenderTargetView);
 
-    if (m_pSwapChain)
-        m_pSwapChain->Release();
+    SAFE_RELEASE(m_pSwapChain);
 
-    if (m_pImmediateContext)
-        m_pImmediateContext->Release();
+    SAFE_RELEASE(m_pImmediateContext);
 
-    if (m_pd3dDevice)
-        m_pd3dDevice->Release();
+#ifdef GPU_DEBUG
+    ID3D11Debug* DebugDevice = nullptr;
+    HRESULT Result = m_pd3dDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&DebugDevice));
+
+    Result = DebugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+
+    DebugDevice->Release();
+#endif // DEBUG
+
+
+    
+
+    SAFE_RELEASE(m_pd3dDevice);
 
     return true;
 }
