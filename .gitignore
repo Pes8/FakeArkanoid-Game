@@ -12,6 +12,10 @@
 
 # Build results
 [Dd]ebug/
+[Dd]ebug_Linux/
+[Dd]ebug_Windows/
+[Rr]elease_Linux/
+[Rr]elease_Windows/
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
