@@ -20,6 +20,7 @@
 #include "Block.h"
 
 
+
 #ifdef WINDOWS
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #else
@@ -47,17 +48,20 @@ int main() {
 
     Block b1;
     b1.loadMesh();
-    b1.m_vPosition = { -1.0f, -1.0f, 0.0f };
+    b1.m_vPosition = { 0.0f, 0.0f, 0.0f };
     b1.m_vRotation = { 0.0f, 2.0f, 0.0f};
     b1.scale = 0.5f;
-    scene->addObject(&b1);
+    b1.loadTexture();
 
     Block b2;
     b2.loadMesh();
-    b2.m_vPosition = { 2.0f, 3.0f, 0.0f };
+    b2.m_vPosition = { 0.0f, 0.0f, -3.0f };
     b2.m_vRotation = { 0.0f, 0.0f, 0.0f };
     b2.scale = 2.0f;
+    b2.loadTexture();
+
     scene->addObject(&b2);
+    scene->addObject(&b1);
 
     graphicsManager->setScene(scene);
     graphicsManager->setup(gameManager->getGameConfiguration());

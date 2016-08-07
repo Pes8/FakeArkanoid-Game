@@ -1,4 +1,6 @@
 #include "Block.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 Block::Block() {
     
@@ -10,14 +12,14 @@ void Block::loadMesh() {
     m_iIndexCount = 36;
     
     m_aoVertices = new VertexInfo[m_iVertexCount];
-    m_aoVertices[0] = { -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f };
-    m_aoVertices[1] = { 1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f };
-    m_aoVertices[2] = { 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f };
-    m_aoVertices[3] = { -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f };
-    m_aoVertices[4] = { -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 1.0f };
-    m_aoVertices[5] = { 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 0.0f, 1.0f };
-    m_aoVertices[6] = { 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
-    m_aoVertices[7] = { -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f };
+    m_aoVertices[0] = { -1.0f, 1.0f, -1.0f, m_oTexture.defaultColor, 0.0f, 1.0f };
+    m_aoVertices[1] = { 1.0f, 1.0f, -1.0f,  m_oTexture.defaultColor, 0.0f, 0.0f };
+    m_aoVertices[2] = { 1.0f, 1.0f, 1.0f,  m_oTexture.defaultColor, 1.0f, 0.0f };
+    m_aoVertices[3] = { -1.0f, 1.0f, 1.0f,  m_oTexture.defaultColor, 1.0f, 1.0f };
+    m_aoVertices[4] = { -1.0f, -1.0f, -1.0f,  m_oTexture.defaultColor, 1.0f, 1.0f };
+    m_aoVertices[5] = { 1.0f, -1.0f, -1.0f,  m_oTexture.defaultColor, 1.0f, 0.0f };
+    m_aoVertices[6] = { 1.0f, -1.0f, 1.0f,  m_oTexture.defaultColor, 0.0f, 0.0f };
+    m_aoVertices[7] = { -1.0f, -1.0f, 1.0f,  m_oTexture.defaultColor, 0.0f, 1.0f };
 
 
     m_alIndices = new unsigned short[m_iIndexCount]{
@@ -41,6 +43,12 @@ void Block::loadMesh() {
     };
 }
 
+void Block::loadTexture() {
+    m_oTexture.data = stbi_load("./Data/Texture/crate.jpg", &m_oTexture.width, &m_oTexture.height, &m_oTexture.channels, m_oTexture.channels);
+    if(m_oTexture.data)
+        hasTexture = true;
+}
+
 Block::~Block() {
-    
+    stbi_image_free(m_oTexture.data);
 }

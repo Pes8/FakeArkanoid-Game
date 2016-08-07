@@ -42,6 +42,19 @@ struct GameConfig {
     bool forceOpenGL_Windows = DEFAULT_OPENGL_WINDOWS;
 };
 
+
+struct Vector2{
+    float u;
+    float v;
+
+    Vector2& operator+=(const Vector2 & _b) {
+        this->u += _b.u;
+        this->v += _b.v;
+        return *this;
+    }
+};
+
+
 struct Vector3{
     float x;
     float y;
@@ -65,6 +78,7 @@ struct Vector4{
 struct VertexInfo {
     Vector3 position;
     Vector4 color;
+    Vector2 uv;
 };
 
 struct Camera {

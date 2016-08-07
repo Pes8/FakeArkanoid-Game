@@ -37,6 +37,9 @@
     <Filter Include="Source Files\GameLogic">
       <UniqueIdentifier>{9ce583b1-8237-4339-b016-acaa08c6dc72}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ThirdPartyLib">
+      <UniqueIdentifier>{f7fc160f-70f7-4222-b935-844b3ab12023}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -110,9 +113,6 @@
     <ClInclude Include="GameManager.h">
       <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
-    <ClInclude Include="CharController.h">
-      <Filter>Header Files\GameLogic</Filter>
-    </ClInclude>
     <ClInclude Include="Block.h">
       <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
@@ -128,9 +128,6 @@
     <ClInclude Include="OpenGLClass.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="ModelClass.h">
-      <Filter>Header Files\GameLogic</Filter>
-    </ClInclude>
     <ClInclude Include="D3DClass.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
@@ -140,9 +137,12 @@
     <ClInclude Include="Scene.h">
       <Filter>Header Files\GameLogic</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>Header Files\ThirdPartyLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="SimpleShader.fx">
+    <FxCompile Include="TextureShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>

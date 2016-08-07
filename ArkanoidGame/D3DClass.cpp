@@ -36,11 +36,18 @@ D3DClass::D3DClass() {
     m_pSwapChain = nullptr;
     m_pRenderTargetView = nullptr;
     m_pVertexShader = nullptr;
-    m_pPixelShader = nullptr;
+    m_pPixelShaderColor = nullptr;
+    m_pPixelShaderTexture = nullptr;
     m_pVertexLayout = nullptr;
     m_pVertexBuffer = nullptr;
     m_pIndexBuffer = nullptr;
     m_pConstantBuffer = nullptr;
+    m_pDepthStencilBuffer = nullptr;
+    m_pDepthStencilState = nullptr;
+    m_pDepthStencilView = nullptr;
+    m_pSampleState = nullptr;
+    m_pTextureView = nullptr;
+    m_pTexture = nullptr;
 }
 
 D3DClass::~D3DClass() {
@@ -116,6 +123,56 @@ bool D3DClass::loadMesh(GenericAsset * _object) {
     delete[] indices;
     indices = nullptr;
 
+    return true;
+}
+
+bool D3DClass::loadTexture(GenericAsset::Texture * _tex) {
+    
+    HRESULT hResult;
+    
+    // Setup the description of the texture.
+    D3D11_TEXTURE2D_DESC textureDesc;
+    textureDesc.Height = _tex->height;
+    textureDesc.Width = _tex->width;
+    textureDesc.MipLevels = 0;
+    textureDesc.ArraySize = 1;
+    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.Usage = D3D11_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+    // Create the empty texture.
+    hResult = m_pd3dDevice->CreateTexture2D(&textureDesc, NULL, &m_pTexture);
+    if (FAILED(hResult)) {
+        return false;
+    }
+
+    // Set the row pitch of the targa image data.
+    unsigned int rowPitch = (_tex->width * 4) * sizeof(unsigned char);
+
+    // Copy the targa image data into the texture.
+    m_pImmediateContext->UpdateSubresource(m_pTexture, 0, NULL, _tex->data, rowPitch, 0);
+
+
+    // Setup the shader resource view description.
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    srvDesc.Format = textureDesc.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+    srvDesc.Texture2D.MipLevels = -1;
+
+    // Create the shader resource view for the texture.
+    hResult = m_pd3dDevice->CreateShaderResourceView(m_pTexture, &srvDesc, &m_pTextureView);
+    if (FAILED(hResult)) {
+        return false;
+    }
+
+    // Generate mipmaps for this texture.
+    m_pImmediateContext->GenerateMips(m_pTextureView);
+    SAFE_RELEASE(m_pTexture);
     return true;
 }
 
@@ -253,8 +310,82 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     pBackBuffer->Release();
     if (FAILED(result))
         return false;
+    
+    // Initialize the description of the depth buffer.
+    D3D11_TEXTURE2D_DESC depthBufferDesc;
+    ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 
-    m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, NULL);
+    // Set up the description of the depth buffer.
+    depthBufferDesc.Width = _iScreenWidth;
+    depthBufferDesc.Height = _iScreenHeight;
+    depthBufferDesc.MipLevels = 1;
+    depthBufferDesc.ArraySize = 1;
+    depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthBufferDesc.SampleDesc.Count = 1;
+    depthBufferDesc.SampleDesc.Quality = 0;
+    depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthBufferDesc.CPUAccessFlags = 0;
+    depthBufferDesc.MiscFlags = 0;
+
+    // Create the texture for the depth buffer using the filled out description.
+    result = m_pd3dDevice->CreateTexture2D(&depthBufferDesc, NULL, &m_pDepthStencilBuffer);
+    if (FAILED(result)) {
+        return false;
+    }
+
+
+    // Initialize the description of the stencil state.
+    D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+    ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+
+    // Set up the description of the stencil state.
+    depthStencilDesc.DepthEnable = true;
+    depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+    depthStencilDesc.StencilEnable = true;
+    depthStencilDesc.StencilReadMask = 0xFF;
+    depthStencilDesc.StencilWriteMask = 0xFF;
+
+    // Stencil operations if pixel is front-facing.
+    depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+    depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    // Stencil operations if pixel is back-facing.
+    depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    // Create the depth stencil state.
+    result = m_pd3dDevice->CreateDepthStencilState(&depthStencilDesc, &m_pDepthStencilState);
+    if (FAILED(result)) {
+        return false;
+    }
+
+    // Set the depth stencil state.
+    m_pImmediateContext->OMSetDepthStencilState(m_pDepthStencilState, 1);
+
+
+    // Initialize the depth stencil view.
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+    ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
+
+    // Set up the depth stencil view description.
+    depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+    // Create the depth stencil view.
+    result = m_pd3dDevice->CreateDepthStencilView(m_pDepthStencilBuffer, &depthStencilViewDesc, &m_pDepthStencilView);
+    if (FAILED(result)) {
+        return false;
+    }
+
+    m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
 
     // Setup the viewport
     D3D11_VIEWPORT vp;
@@ -268,7 +399,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
 
     // Compile the vertex shader
     ID3DBlob* pVSBlob = NULL;
-    result = CompileShaderFromFile(L"SimpleShader.fx", "VS", "vs_4_0", &pVSBlob);
+    result = CompileShaderFromFile(L"TextureShader.hlsl", "VS", "vs_4_0", &pVSBlob);
     if (FAILED(result)) {
         MessageBox(NULL, "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
         return false;
@@ -285,7 +416,8 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     UINT numElements = ARRAYSIZE(layout);
 
@@ -298,29 +430,68 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     // Set the input layout
     m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
 
-    // Compile the pixel shader
+    // Compile the pixel shader - Color Entry Point
     ID3DBlob* pPSBlob = NULL;
-    result = CompileShaderFromFile(L"SimpleShader.fx", "PS", "ps_4_0", &pPSBlob);
+    result = CompileShaderFromFile(L"TextureShader.hlsl", "PS_Color", "ps_4_0", &pPSBlob);
     if (FAILED(result)) {
         MessageBox(NULL,
                    "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
         return false;
     }
 
-    // Create the pixel shader
-    result = m_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &m_pPixelShader);
+    // Create the pixel shader - Color Entry Point
+    result = m_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &m_pPixelShaderColor);
     pPSBlob->Release();
     if (FAILED(result))
         return false;
 
+
+    // Compile the pixel shader - Texture Entry Point
+    ID3DBlob* pPSBlob2 = NULL;
+    result = CompileShaderFromFile(L"TextureShader.hlsl", "PS_Texture", "ps_4_0", &pPSBlob2);
+    if (FAILED(result)) {
+        MessageBox(NULL,
+                   "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
+        return false;
+    }
+
+    // Create the pixel shader - Texture Entry Point
+    result = m_pd3dDevice->CreatePixelShader(pPSBlob2->GetBufferPointer(), pPSBlob2->GetBufferSize(), NULL, &m_pPixelShaderTexture);
+    pPSBlob2->Release();
+    if (FAILED(result))
+        return false;
     
+
+    // Create a texture sampler state description.
+    D3D11_SAMPLER_DESC samplerDesc;
+    samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samplerDesc.MipLODBias = 0.0f;
+    samplerDesc.MaxAnisotropy = 1;
+    samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+    samplerDesc.BorderColor[0] = 1.0f;
+    samplerDesc.BorderColor[1] = 1.0f;
+    samplerDesc.BorderColor[2] = 1.0f;
+    samplerDesc.BorderColor[3] = 1.0f;
+    samplerDesc.MinLOD = 0;
+    samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    // Create the texture sampler state.
+    result = m_pd3dDevice->CreateSamplerState(&samplerDesc, &m_pSampleState);
+    if (FAILED(result)) {
+        return false;
+    }
+
+
 
     // Initialize the world matrix
     m_World = XMMatrixIdentity();
 
     // Initialize the projection matrix
-    //m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _iScreenWidth / (FLOAT)_iScreenHeight, _fNear, _fFar);
-    m_Projection = XMMatrixOrthographicLH(20.0, 20.0, _fNear, _fFar);
+    m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _iScreenWidth / (FLOAT)_iScreenHeight, _fNear, _fFar);
+    //m_Projection = XMMatrixOrthographicLH(20.0, 20.0, _fNear, _fFar);
     return true;
 
 }
@@ -331,24 +502,18 @@ bool D3DClass::run() {
 
 bool D3DClass::render(Scene * _scene) {
     
-    //
-    // Clear the back buffer
-    //
-    float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red,green,blue,alpha
+    // Clear the back buffer and the depth buffer
+    float ClearColor[4] = { 0.0f, 0.125f, 0.1f, 1.0f };
     m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
-
-    //Put all objects in one array and creates buffers
-    //int numVertices = 0;
-    /*bool res = renderObjectsTogheter(_scene, numVertices);*/
+    m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
+   
 
     for (GenericAsset * _asset : _scene->getObjectList()) {
         bool res = loadMesh(_asset);
         if (!res)
             return false;
 
-        //
         // Update variables
-        //
         ConstantBuffer cb;
         cb.mWorld = XMMatrixTranspose(m_World);
         cb.mView = XMMatrixTranspose(m_View);
@@ -356,27 +521,31 @@ bool D3DClass::render(Scene * _scene) {
         m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb, 0, 0);
 
 
-        //
         // Renders a triangle
-        //
         m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
         m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-        m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
+        if (_asset->hasTexture) {
+            loadTexture(&_asset->m_oTexture);
+            m_pImmediateContext->PSSetShader(m_pPixelShaderTexture, NULL, 0);
+            // Set shader texture resource in the pixel shader.
+            m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTextureView);
+        } else {
+            m_pImmediateContext->PSSetShader(m_pPixelShaderColor, NULL, 0);
+        }
+
+        m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampleState);
+
         m_pImmediateContext->DrawIndexed(_asset->m_iIndexCount, 0, 0);
 
-
+        SAFE_RELEASE(m_pTextureView);
         SAFE_RELEASE(m_pIndexBuffer);
         SAFE_RELEASE(m_pVertexBuffer);
         SAFE_RELEASE(m_pConstantBuffer);
     }
     
 
-    //
-    // Present our back buffer to our front buffer
-    //
+    // Present our back buffer to our front buffer - nice to meet you!
     m_pSwapChain->Present(0, 0);
-    
-    
 
     return true;
 }
@@ -387,40 +556,35 @@ bool D3DClass::shutdown() {
     SAFE_RELEASE(m_pVertexBuffer);
     SAFE_RELEASE(m_pConstantBuffer);
 
+    SAFE_RELEASE(m_pDepthStencilBuffer);
+    SAFE_RELEASE(m_pDepthStencilState);
+    SAFE_RELEASE(m_pDepthStencilView);
+
     if (m_pImmediateContext) {
         m_pImmediateContext->ClearState();
         m_pImmediateContext->Flush();
     }
 
-    SAFE_RELEASE(m_pConstantBuffer);
-
     SAFE_RELEASE(m_pVertexBuffer);
-
     SAFE_RELEASE(m_pIndexBuffer);
-
     SAFE_RELEASE(m_pVertexLayout);
-
     SAFE_RELEASE(m_pVertexShader);
-
-    SAFE_RELEASE(m_pPixelShader);
-
+    SAFE_RELEASE(m_pPixelShaderColor);
+    SAFE_RELEASE(m_pPixelShaderTexture);
+    SAFE_RELEASE(m_pSampleState);
+    SAFE_RELEASE(m_pTextureView);
+    SAFE_RELEASE(m_pTexture);
     SAFE_RELEASE(m_pRenderTargetView);
-
     SAFE_RELEASE(m_pSwapChain);
-
     SAFE_RELEASE(m_pImmediateContext);
 
 #ifdef GPU_DEBUG
     ID3D11Debug* DebugDevice = nullptr;
     HRESULT Result = m_pd3dDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&DebugDevice));
-
     Result = DebugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
-
     DebugDevice->Release();
+
 #endif // DEBUG
-
-
-    
 
     SAFE_RELEASE(m_pd3dDevice);
 

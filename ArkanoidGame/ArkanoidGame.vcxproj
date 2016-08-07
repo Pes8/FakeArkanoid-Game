@@ -239,17 +239,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Block.h" />
-    <ClInclude Include="CharController.h" />
     <ClInclude Include="D3DClass.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GenericAsset.h" />
     <ClInclude Include="GraphicsInterface.h" />
     <ClInclude Include="GraphicsManager.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="ModelClass.h" />
     <ClInclude Include="OpenGLClass.h" />
     <ClInclude Include="OSHelper.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="stb_image.h" />
     <ClInclude Include="SystemFactory.h" />
     <ClInclude Include="Types.h" />
     <ClInclude Include="WindowsGraphicsManager.h" />
@@ -258,11 +257,23 @@
     <ClInclude Include="WindowsSystemFactory.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="SimpleShader.fx">
+    <FxCompile Include="TextureShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release_Linux|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release_Linux|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release_Windows|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release_Windows|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug_Windows|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug_Windows|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug_Linux|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug_Linux|x64'">Vertex</ShaderType>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug_Linux|Win32'">VS</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug_Windows|Win32'">VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release_Linux|Win32'">VS</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release_Windows|Win32'">VS</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release_Windows|x64'">VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug_Linux|x64'">VS</EntryPointName>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug_Windows|x64'">VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release_Linux|x64'">VS</EntryPointName>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release_Windows|x64'">VS</EntryPointName>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
