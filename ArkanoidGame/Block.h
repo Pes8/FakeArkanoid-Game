@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GenericAsset.h"
+#include "GameObject.h"
 
-struct Block : public GenericAsset{
+struct Block : public GameObject{
     Block();
     virtual void loadMesh();
     virtual void loadTexture();

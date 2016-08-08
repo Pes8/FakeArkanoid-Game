@@ -2,7 +2,7 @@
 
 #include "Types.h"
 #include "Scene.h"
-#include "GenericAsset.h"
+#include "GameObject.h"
 
 class GraphicsManager {
 public:

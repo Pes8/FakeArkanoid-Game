@@ -86,6 +86,6 @@ private:
     XMMATRIX                     m_View;
     XMMATRIX                     m_Projection;
 
-    bool loadMesh(GenericAsset * _object);
-    bool loadTexture(GenericAsset::Texture * _tex);
+    bool loadMesh(GameObject * _object);
+    bool loadTexture(GameObject::Texture * _tex);
 };

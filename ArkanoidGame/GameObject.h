@@ -3,7 +3,7 @@
 #include "Types.h"
 
 
-struct GenericAsset {
+struct GameObject {
     
     VertexInfo * m_aoVertices = nullptr;
     struct Texture {
@@ -25,5 +25,5 @@ struct GenericAsset {
 
     virtual void loadMesh() = 0;
     virtual void loadTexture() = 0;
-    virtual ~GenericAsset();
+    virtual ~GameObject() = 0;
 };

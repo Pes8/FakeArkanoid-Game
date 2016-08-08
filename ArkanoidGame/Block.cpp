@@ -12,14 +12,14 @@ void Block::loadMesh() {
     m_iIndexCount = 36;
     
     m_aoVertices = new VertexInfo[m_iVertexCount];
-    m_aoVertices[0] = { -1.0f, 1.0f, -1.0f, m_oTexture.defaultColor, 0.0f, 1.0f };
-    m_aoVertices[1] = { 1.0f, 1.0f, -1.0f,  m_oTexture.defaultColor, 0.0f, 0.0f };
-    m_aoVertices[2] = { 1.0f, 1.0f, 1.0f,  m_oTexture.defaultColor, 1.0f, 0.0f };
-    m_aoVertices[3] = { -1.0f, 1.0f, 1.0f,  m_oTexture.defaultColor, 1.0f, 1.0f };
-    m_aoVertices[4] = { -1.0f, -1.0f, -1.0f,  m_oTexture.defaultColor, 1.0f, 1.0f };
-    m_aoVertices[5] = { 1.0f, -1.0f, -1.0f,  m_oTexture.defaultColor, 1.0f, 0.0f };
-    m_aoVertices[6] = { 1.0f, -1.0f, 1.0f,  m_oTexture.defaultColor, 0.0f, 0.0f };
-    m_aoVertices[7] = { -1.0f, -1.0f, 1.0f,  m_oTexture.defaultColor, 0.0f, 1.0f };
+    m_aoVertices[0] = { -0.5f, 0.5f, -0.5f, m_oTexture.defaultColor, 0.0f, 1.0f };
+    m_aoVertices[1] = { 0.5f, 0.5f, -0.5f,  m_oTexture.defaultColor, 0.0f, 0.0f };
+    m_aoVertices[2] = { 0.5f, 0.5f, 0.5f,  m_oTexture.defaultColor, 1.0f, 0.0f };
+    m_aoVertices[3] = { -0.5f, 0.5f, 0.5f,  m_oTexture.defaultColor, 1.0f, 1.0f };
+    m_aoVertices[4] = { -0.5f, -0.5f, -0.5f,  m_oTexture.defaultColor, 1.0f, 1.0f };
+    m_aoVertices[5] = { 0.5f, -0.5f, -0.5f,  m_oTexture.defaultColor, 1.0f, 0.0f };
+    m_aoVertices[6] = { 0.5f, -0.5f, 0.5f,  m_oTexture.defaultColor, 0.0f, 0.0f };
+    m_aoVertices[7] = { -0.5f, -0.5f, 0.5f,  m_oTexture.defaultColor, 0.0f, 1.0f };
 
 
     m_alIndices = new unsigned short[m_iIndexCount]{

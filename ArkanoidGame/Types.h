@@ -12,10 +12,13 @@
 #define DEFAULT_CAMERA_FAR 1000.0f
 #define DEFAULT_CAMERA_NEAR 0.1f
 #define DEFAULT_OPENGL_WINDOWS false
-#define DEFAULT_CAMERA_POSITION {0.0f, 0.0f, -10.0f}
+#define DEFAULT_CAMERA_POSITION {0.0f, 0.0f, -5.0f}
 #define DEFAULT_CAMERA_ROTATION {0.0f, 0.0f, 0.0f}
 #define DEFAULT_CAMERA_LOOKAT {0.0f, 0.0f, 1.0f}
 #define DEFAULT_CAMERA_UP {0.0f, 1.0f, 0.0f}
+#define CAMERA_ORTO_WIDTH 20.0
+#define CAMERA_ORTO_HEIGHT 20.0
+
 
 /* UTILITIES */
 #define SAFE_DELETE(x) if(x) { delete x; x = nullptr; }

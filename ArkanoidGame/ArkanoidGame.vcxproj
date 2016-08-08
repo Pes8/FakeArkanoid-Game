@@ -224,6 +224,7 @@
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="D3DClass.cpp" />
     <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="GenericAsset.cpp" />
     <ClCompile Include="GraphicsInterface.cpp" />
     <ClCompile Include="GraphicsManager.cpp" />
@@ -241,7 +242,7 @@
     <ClInclude Include="Block.h" />
     <ClInclude Include="D3DClass.h" />
     <ClInclude Include="GameManager.h" />
-    <ClInclude Include="GenericAsset.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="GraphicsInterface.h" />
     <ClInclude Include="GraphicsManager.h" />
     <ClInclude Include="InputManager.h" />

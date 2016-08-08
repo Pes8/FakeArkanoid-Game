@@ -2,7 +2,7 @@
 
 #include "Types.h"
 #include <vector>
-#include "GenericAsset.h"
+#include "GameObject.h"
 #include "Scene.h"
 
 class GraphicsInterface {

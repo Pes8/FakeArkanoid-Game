@@ -54,7 +54,7 @@ D3DClass::~D3DClass() {
 
 }
 
-bool D3DClass::loadMesh(GenericAsset * _object) {
+bool D3DClass::loadMesh(GameObject * _object) {
     HRESULT result;
 
     m_World = XMMatrixIdentity();
@@ -126,7 +126,7 @@ bool D3DClass::loadMesh(GenericAsset * _object) {
     return true;
 }
 
-bool D3DClass::loadTexture(GenericAsset::Texture * _tex) {
+bool D3DClass::loadTexture(GameObject::Texture * _tex) {
     
     HRESULT hResult;
     
@@ -490,8 +490,8 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     m_World = XMMatrixIdentity();
 
     // Initialize the projection matrix
-    m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _iScreenWidth / (FLOAT)_iScreenHeight, _fNear, _fFar);
-    //m_Projection = XMMatrixOrthographicLH(20.0, 20.0, _fNear, _fFar);
+    //m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _iScreenWidth / (FLOAT)_iScreenHeight, _fNear, _fFar);
+    m_Projection = XMMatrixOrthographicLH(CAMERA_ORTO_WIDTH, CAMERA_ORTO_HEIGHT, _fNear, _fFar);
     return true;
 
 }
@@ -508,7 +508,7 @@ bool D3DClass::render(Scene * _scene) {
     m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
    
 
-    for (GenericAsset * _asset : _scene->getObjectList()) {
+    for (GameObject * _asset : _scene->getObjectList()) {
         bool res = loadMesh(_asset);
         if (!res)
             return false;

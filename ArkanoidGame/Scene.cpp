@@ -9,7 +9,7 @@ Scene * Scene::getInstance() {
     return Scene::instance;
 }
 
-void Scene::addObject(GenericAsset * _object) {
+void Scene::addObject(GameObject * _object) {
     m_oObjectsList.push_back(_object);
     
     unsigned short _oldVertNumber = m_iVerticesNumber;
@@ -45,7 +45,7 @@ unsigned int Scene::getIndicesNumber() const {
     return m_iIndicesNumber;
 }
 
-std::vector<GenericAsset*> Scene::getObjectList() const {
+std::vector<GameObject*> Scene::getObjectList() const {
     return m_oObjectsList;
 }
 
