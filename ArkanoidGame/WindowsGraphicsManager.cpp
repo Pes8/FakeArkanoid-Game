@@ -16,7 +16,7 @@ bool WindowsGraphicsManager::setup(GameConfig * config) {
     m_oCamera.m_fFar = config->cameraFar;
     m_oCamera.m_fNear = config->cameraNear;
     //Copy Position, Rotation, LookAt and Up togheter
-    memcpy(&m_oCamera.m_afPosition, &config->cameraPosition, sizeof(config->cameraPosition) * 4); //Yes, the have the same order! :)
+    memcpy(&m_oCamera.m_afPosition, &config->cameraPosition, sizeof(config->cameraPosition) * 4); //Yes, they have the same order! :)
 
     //Force to use OpenGL also on windows
     if (config->forceOpenGL_Windows) {

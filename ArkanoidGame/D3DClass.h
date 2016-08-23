@@ -87,5 +87,5 @@ private:
     XMMATRIX                     m_Projection;
 
     bool loadMesh(GameObject * _object);
-    bool loadTexture(GameObject::Texture * _tex);
+    bool loadTexture(Texture * _tex);
 };

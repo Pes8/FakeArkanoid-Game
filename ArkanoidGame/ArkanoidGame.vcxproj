@@ -221,11 +221,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AssetsManager.cpp" />
     <ClCompile Include="Block.cpp" />
+    <ClCompile Include="Character.cpp" />
     <ClCompile Include="D3DClass.cpp" />
+    <ClCompile Include="FakePhysicsManager.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GenericAsset.cpp" />
     <ClCompile Include="GraphicsInterface.cpp" />
     <ClCompile Include="GraphicsManager.cpp" />
     <ClCompile Include="InputManager.cpp" />
@@ -239,8 +241,11 @@
     <ClCompile Include="WindowsSystemFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AssetsManager.h" />
     <ClInclude Include="Block.h" />
+    <ClInclude Include="Character.h" />
     <ClInclude Include="D3DClass.h" />
+    <ClInclude Include="FakePhysicsManager.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GraphicsInterface.h" />

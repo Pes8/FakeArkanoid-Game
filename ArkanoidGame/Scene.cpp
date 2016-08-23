@@ -14,15 +14,15 @@ void Scene::addObject(GameObject * _object) {
     
     unsigned short _oldVertNumber = m_iVerticesNumber;
 
-    m_iVerticesNumber += _object->m_iVertexCount;
-    m_iIndicesNumber += _object->m_iIndexCount;
+    m_iVerticesNumber += _object->m_oMesh->m_iVertexCount;
+    m_iIndicesNumber += _object->m_oMesh->m_iIndexCount;
     
-    for (unsigned int i = 0; i < _object->m_iVertexCount; ++i) {
-        m_oTotalVerticesInfo.push_back(_object->m_aoVertices[i]);
+    for (unsigned int i = 0; i < _object->m_oMesh->m_iVertexCount; ++i) {
+        m_oTotalVerticesInfo.push_back(_object->m_oMesh->m_aoVertices[i]);
     }
 
-    for (unsigned int i = 0; i < _object->m_iIndexCount; ++i) {
-        m_siTotalIndices.push_back(_oldVertNumber + _object->m_alIndices[i]);
+    for (unsigned int i = 0; i < _object->m_oMesh->m_iIndexCount; ++i) {
+        m_siTotalIndices.push_back(_oldVertNumber + _object->m_oMesh->m_alIndices[i]);
     }
 
 }

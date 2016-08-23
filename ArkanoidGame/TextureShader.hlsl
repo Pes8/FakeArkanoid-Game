@@ -5,8 +5,8 @@ SamplerState g_SampleState;
 SamplerState MeshTextureSampler
 {
     Filter = MIN_MAG_MIP_LINEAR;
-    AddressU = Wrap;
-    AddressV = Wrap;
+    AddressU = clamp;
+    AddressV = clamp;
 };
 
 //--------------------------------------------------------------------------------------

@@ -59,11 +59,11 @@ bool D3DClass::loadMesh(GameObject * _object) {
 
     m_World = XMMatrixIdentity();
 
-    unsigned int totalVertices = _object->m_iVertexCount;
-    unsigned int _numDrawVertex = _object->m_iIndexCount;
+    unsigned int totalVertices = _object->m_oMesh->m_iVertexCount;
+    unsigned int _numDrawVertex = _object->m_oMesh->m_iIndexCount;
 
     SimpleVertex * vertices = new SimpleVertex[totalVertices];
-    memcpy(vertices, _object->m_aoVertices, sizeof(VertexInfo) * totalVertices);
+    memcpy(vertices, _object->m_oMesh->m_aoVertices, sizeof(VertexInfo) * totalVertices);
 
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
@@ -84,7 +84,7 @@ bool D3DClass::loadMesh(GameObject * _object) {
     m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 
     WORD * indices = new WORD[_numDrawVertex];
-    memcpy(indices, _object->m_alIndices, sizeof(WORD) * _numDrawVertex);
+    memcpy(indices, _object->m_oMesh->m_alIndices, sizeof(WORD) * _numDrawVertex);
     
     // Create index buffer
 
@@ -112,9 +112,10 @@ bool D3DClass::loadMesh(GameObject * _object) {
     if (FAILED(result))
         return false;
     //Update world matrix
+    m_World *= XMMatrixScaling(_object->scale, _object->scale, _object->scale);
     m_World *= XMMatrixTranslation(_object->m_vPosition.x, _object->m_vPosition.y, _object->m_vPosition.z);
     m_World *= XMMatrixRotationRollPitchYaw(_object->m_vRotation.x, _object->m_vRotation.y, _object->m_vRotation.z);
-    m_World *= XMMatrixScaling(_object->scale, _object->scale, _object->scale);
+    
 
     // Release the arrays now that the vertex and index buffers have been created and loaded.
     delete[] vertices;
@@ -126,7 +127,7 @@ bool D3DClass::loadMesh(GameObject * _object) {
     return true;
 }
 
-bool D3DClass::loadTexture(GameObject::Texture * _tex) {
+bool D3DClass::loadTexture(Texture * _tex) {
     
     HRESULT hResult;
     
@@ -525,7 +526,7 @@ bool D3DClass::render(Scene * _scene) {
         m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
         m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
         if (_asset->hasTexture) {
-            loadTexture(&_asset->m_oTexture);
+            loadTexture(_asset->m_oTexture);
             m_pImmediateContext->PSSetShader(m_pPixelShaderTexture, NULL, 0);
             // Set shader texture resource in the pixel shader.
             m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTextureView);
@@ -535,7 +536,7 @@ bool D3DClass::render(Scene * _scene) {
 
         m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampleState);
 
-        m_pImmediateContext->DrawIndexed(_asset->m_iIndexCount, 0, 0);
+        m_pImmediateContext->DrawIndexed(_asset->m_oMesh->m_iIndexCount, 0, 0);
 
         SAFE_RELEASE(m_pTextureView);
         SAFE_RELEASE(m_pIndexBuffer);

@@ -16,14 +16,21 @@
 #define DEFAULT_CAMERA_ROTATION {0.0f, 0.0f, 0.0f}
 #define DEFAULT_CAMERA_LOOKAT {0.0f, 0.0f, 1.0f}
 #define DEFAULT_CAMERA_UP {0.0f, 1.0f, 0.0f}
-#define CAMERA_ORTO_WIDTH 20.0
+#define CAMERA_ORTO_WIDTH 20.5
 #define CAMERA_ORTO_HEIGHT 20.0
-
+#define DEFAULT_PLAYER_VELOCITY 0.15f
 
 /* UTILITIES */
 #define SAFE_DELETE(x) if(x) { delete x; x = nullptr; }
 
-#define FPS 120 // Frame Per Seconds
+#define PI 3.141592f
+#define PI_DIV_2 1.570796f
+#define PI_DIV_3 1.047197f
+#define PI_DIV_4 0.785398f
+#define PI_DIV_6 0.523598f
+#define PI_DIV_12 0.261799f
+
+#define FPS 90 // Frame Per Seconds
 #define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
 
 typedef void(*FP)();
@@ -69,6 +76,21 @@ struct Vector3{
         this->z += _b.z;
         return *this;
     }
+
+    Vector3& operator*=(const Vector3 & _b) {
+        this->x *= _b.x;
+        this->y *= _b.y;
+        this->z *= _b.z;
+        return *this;
+    }
+
+    Vector3& operator*=(const float & _scalar) {
+        this->x *= _scalar;
+        this->y *= _scalar;
+        this->z *= _scalar;
+        return *this;
+    }
+
 };
 
 struct Vector4{
@@ -82,6 +104,28 @@ struct VertexInfo {
     Vector3 position;
     Vector4 color;
     Vector2 uv;
+};
+
+struct Mesh {
+    VertexInfo * m_aoVertices = nullptr;
+    unsigned int m_iVertexCount = 0;
+    unsigned int m_iIndexCount = 0;
+    unsigned short * m_alIndices = nullptr;
+};
+
+struct Texture {
+    unsigned char * data = nullptr;
+    int width = 0;
+    int height = 0;
+    int channels = 4;
+    Vector4 defaultColor = { 0.6f, 0.3f, 0.2f, 1.0f };
+};
+
+struct Collider {
+    Vector3 sizes;
+    enum { SPHERE, AABB } type;
+    float radius;
+    bool active = false;
 };
 
 struct Camera {
