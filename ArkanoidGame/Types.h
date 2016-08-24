@@ -27,7 +27,7 @@
 #define CAMERA_ORTO_HEIGHT 20.0
 
 #define PLAYER_VELOCITY 0.25f // Horizontal movement
-#define PLAYER_START_POS { 0, -8.5f, 0.0f }
+#define PLAYER_START_POS { 0, - (CAMERA_ORTO_HEIGHT/2 - 1.5f), 0.0f }
 #define PLAYER_LIVES 1
 #define PLAYER_SIZE_X 1.0f
 #define PLAYER_SIZE_Y 0.2f
@@ -37,11 +37,14 @@
 #define BLOCK_SIZE_X 0.5f
 #define BLOCK_SIZE_Y 0.25f
 #define BLOCK_SIZE_Z 0.5f
-#define GRID_BLOCK_SIZE_X 1
-#define GRID_BLOCK_SIZE_Y 0.5f
 #define WALL_THICKNESS_X 0.25f
 #define WALL_THICKNESS_Y 0.25f
 #define WALL_THICKNESS_Z 0.5f
+#define GRID_BLOCK_SIZE_X BLOCK_SIZE_X * 2
+#define GRID_BLOCK_SIZE_Y BLOCK_SIZE_Y * 2
+#define GRID_BLOCK_START_X - (CAMERA_ORTO_WIDTH/2 - WALL_THICKNESS_X - BLOCK_SIZE_X)
+#define GRID_BLOCK_START_Y CAMERA_ORTO_HEIGHT/2 - WALL_THICKNESS_Y - BLOCK_SIZE_Y
+
 
 #define PI 3.141592f
 #define PI_DIV_2 1.570796f
@@ -50,7 +53,7 @@
 #define PI_DIV_6 0.523598f
 #define PI_DIV_12 0.261799f
 
-#define FPS 90 // Frame Per Seconds
+#define FPS 120 // Frame Per Seconds
 #define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
 
 #define LOCAL_PATH "./Data/"
@@ -181,14 +184,24 @@ enum Button {
     NOTHING
 };
 
+struct ID {
+    static int _ID;
+    int _MyID;
+    ID() {
+        ++ID::_ID;
+        _MyID = ID::_ID;
+    }
+};
+
 struct Event {
     std::vector<callback> subscriptions;
     unsigned int subscribe(callback cb) {
         subscriptions.push_back(cb);
-        return subscriptions.size();
+        return subscriptions.size() -1;
     }
-    void unsubcribe(unsigned int pos) {
-        subscriptions.erase(subscriptions.begin() + pos);
+    void unsubscribe(unsigned int pos) {
+        if(subscriptions.size() > pos)
+            subscriptions.erase(subscriptions.begin() + pos);
     }
     void fire() { for (callback& cb : subscriptions) cb(); }
 };

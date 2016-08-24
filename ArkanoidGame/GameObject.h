@@ -3,7 +3,7 @@
 #include "Types.h"
 #include "stb_image.h"
 
-struct GameObject {
+struct GameObject : public ID{
     
     Texture * m_oTexture;
     Mesh * m_oMesh;
@@ -13,6 +13,7 @@ struct GameObject {
     Vector3 m_vRotation;
     Vector3 m_vVelocity;
     float scale;
+    virtual void hit() = 0;
     GameObject();
     virtual ~GameObject();
 };

@@ -5,4 +5,5 @@
 struct Wall : public GameObject {
     Wall();
     virtual ~Wall();
+    virtual void hit();
 };

@@ -42,6 +42,8 @@ void FakePhysicsManager::doPhysicUpdate() {
                 ball->m_vVelocity.x *= horizontal ? -1 : 1;
                 ball->m_vVelocity.y *= horizontal ? 1 : -1;
 
+                //hit the object
+                _obj->hit();
             }
             break;
         }

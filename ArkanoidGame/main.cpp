@@ -28,6 +28,8 @@
 #include "Character.h"
 
 
+int ID::_ID = 0;
+
 #ifdef WINDOWS
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #else

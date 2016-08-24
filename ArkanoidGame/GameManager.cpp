@@ -52,22 +52,28 @@ const GameObject * GameManager::getBallInCurrentLevel() const {
     return m_oCurrentLevel->m_oBall;
 }
 
+GameManager::~GameManager() {
+    OnButtonPressed[LEFT_BTN].unsubscribe(playerSubscription_LEFT_BTN); //TODO check if is ok
+    OnButtonPressed[RIGHT_BTN].unsubscribe(playerSubscription_RIGHT_BTN); //TODO check if is ok
+    delete m_oCurrentLevel;
+}
+
 bool GameManager::readLevel(int _level) {
     
     AssetsManager * assetsManager = AssetsManager::getInstance();
 
-    //Walls, one player and one ball exists always
+    //Walls, a player and a ball always exists
     Character * player = assetsManager->createPlayer();
     Ball * ball = assetsManager->createBall();
 
     Wall * wsx = assetsManager->createVerticalWall();
-    wsx->m_vPosition = { -10.25,0.0f,0.0f };
+    wsx->m_vPosition = { -CAMERA_ORTO_WIDTH/2, 0.0f,0.0f };
 
     Wall * wdx = assetsManager->createVerticalWall();
-    wdx->m_vPosition = { 10.25,0.0f,0.0f };
+    wdx->m_vPosition = { CAMERA_ORTO_WIDTH/2, 0.0f,0.0f };
 
     Wall * wup = assetsManager->createHorizontalWall();
-    wup->m_vPosition = { 0.0f, 10.0f, 0.0f };
+    wup->m_vPosition = { 0.0f, CAMERA_ORTO_HEIGHT/2, 0.0f };
     
     m_oCurrentLevel->m_oPlayer = player;
     m_oCurrentLevel->m_oBall = ball;
@@ -111,7 +117,7 @@ bool GameManager::readLevel(int _level) {
             char c;
             iss >> c;
             if (c == 'P') {
-                Vector3 pos = { -9.5f, 9.5f, 0.0f };
+                Vector3 pos = { GRID_BLOCK_START_X, GRID_BLOCK_START_Y, 0.0f };
                 int i, j;
                 iss >> i >> j;
                 pos.x += i * GRID_BLOCK_SIZE_X;
@@ -125,8 +131,8 @@ bool GameManager::readLevel(int _level) {
 
     }
 
-    OnButtonPressed[LEFT_BTN].subscribe(std::bind(&Character::CharGoLeft, player)); //TODO REMOVE
-    OnButtonPressed[RIGHT_BTN].subscribe(std::bind(&Character::CharGoRight, player)); //TODO REMOVE
+    playerSubscription_LEFT_BTN = OnButtonPressed[LEFT_BTN].subscribe(std::bind(&Character::CharGoLeft, player)); //TODO REMOVE
+    playerSubscription_RIGHT_BTN = OnButtonPressed[RIGHT_BTN].subscribe(std::bind(&Character::CharGoRight, player)); //TODO REMOVE
 
     return true;
 }
@@ -138,4 +144,21 @@ GameManager::GameManager(){
 
 void GameManager::OnQuitBtn(){
     GameManager::quit = true;
+}
+
+void GameManager::OnBlockDestroyed(int id) {
+    for (auto it = m_oCurrentLevel->m_oObjectsList.begin(); it != m_oCurrentLevel->m_oObjectsList.end(); ++it){
+        if ((*it)->_MyID == id) {
+            delete *it;
+            m_oCurrentLevel->m_oObjectsList.erase(it);
+
+            break;
+        }
+    }
+}
+
+Level::~Level() {
+    CLEAR_POINTER_CONTAINER(m_oObjectsList);
+    m_oBall = nullptr;
+    m_oPlayer = nullptr;
 }

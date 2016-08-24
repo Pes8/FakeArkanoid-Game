@@ -7,3 +7,7 @@ Wall::Wall() {
 Wall::~Wall() {
 
 }
+
+void Wall::hit() {
+    //do nothign
+}

@@ -13,6 +13,7 @@ struct Level {
     std::vector<GameObject *> m_oObjectsList;
     Character * m_oPlayer;
     Ball * m_oBall;
+    ~Level();
 };
 
 class GameManager{
@@ -22,12 +23,16 @@ public:
     void initialization(SystemFactory * _systemFactory);
     void processEvent(Button pressedButton);
     Event OnButtonPressed[IM__BUTTONS_NUMBER];
+    Event BallOutside;
+    Event PlayerDeath;
     GameConfig * getGameConfiguration() const;
     void startCheckFPS();
     void checkFPS();
     const std::vector<GameObject *> * getCurrentLevelScene() const;
     const GameObject * getPlayerInCurrentLevel() const;
     const GameObject * getBallInCurrentLevel() const;
+    ~GameManager();
+    void OnBlockDestroyed(int id);
 private:
     
     static GameManager * instance;
@@ -39,6 +44,10 @@ private:
 
     bool readLevel(int _level);
 
+    int playerSubscription_LEFT_BTN;
+    int playerSubscription_RIGHT_BTN;
+
     GameManager();
     void OnQuitBtn();
+    
 };

@@ -6,3 +6,7 @@ Ball::Ball() {
 
 Ball::~Ball() {
 }
+
+void Ball::hit() {
+    //do nothing
+}

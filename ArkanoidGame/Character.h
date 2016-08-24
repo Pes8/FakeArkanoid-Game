@@ -10,4 +10,5 @@ struct Character : public GameObject {
     virtual ~Character();
     void CharGoLeft();
     void CharGoRight();
+    virtual void hit();
 };

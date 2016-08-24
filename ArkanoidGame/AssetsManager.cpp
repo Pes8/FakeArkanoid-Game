@@ -223,6 +223,8 @@ Block * AssetsManager::createBlock(int type) {
     _block->collider->sizes = { BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z };
     _block->collider->type = Collider::AABB;
 
+    _block->hitBeforeDestroy = type / 8 + 1;
+
     return _block;
 }
 

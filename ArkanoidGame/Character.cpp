@@ -24,3 +24,7 @@ void Character::CharGoRight() {
     if(m_vPosition.x + collider->sizes.x  + PLAYER_VELOCITY < (CAMERA_ORTO_WIDTH - WALL_THICKNESS_X) / 2)
         m_vVelocity.x += PLAYER_VELOCITY;
 }
+
+void Character::hit() {
+    //Do nothing
+}
