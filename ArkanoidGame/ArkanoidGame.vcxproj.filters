@@ -90,9 +90,6 @@
     <ClCompile Include="D3DClass.cpp">
       <Filter>Source Files\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Source Files\GameLogic</Filter>
-    </ClCompile>
     <ClCompile Include="FakePhysicsManager.cpp">
       <Filter>Source Files\Physics</Filter>
     </ClCompile>
@@ -106,6 +103,12 @@
       <Filter>Source Files\Assets</Filter>
     </ClCompile>
     <ClCompile Include="AssetsManager.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Ball.cpp">
+      <Filter>Source Files\Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Wall.cpp">
       <Filter>Source Files\Assets</Filter>
     </ClCompile>
   </ItemGroup>
@@ -149,9 +152,6 @@
     <ClInclude Include="D3DClass.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Header Files\GameLogic</Filter>
-    </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>Header Files\ThirdPartyLib</Filter>
     </ClInclude>
@@ -168,6 +168,12 @@
       <Filter>Header Files\Assets</Filter>
     </ClInclude>
     <ClInclude Include="AssetsManager.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Ball.h">
+      <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Wall.h">
       <Filter>Header Files\Assets</Filter>
     </ClInclude>
   </ItemGroup>

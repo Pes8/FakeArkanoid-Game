@@ -2,6 +2,6 @@
 
 GraphicsManager * GraphicsManager::instance = nullptr;
 
-void GraphicsManager::setScene(Scene * _scene) {
+void GraphicsManager::setScene(const std::vector<GameObject*> * _scene) {
     scene = _scene;
 }

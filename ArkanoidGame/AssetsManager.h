@@ -6,7 +6,8 @@
 #include "GameObject.h"
 #include "Character.h"
 #include "Block.h"
-//#include "Ball"
+#include "Ball.h"
+#include "Wall.h"
 
 #define BLOCK_INDEX 0
 #define WALLS_INDEX 20
@@ -27,9 +28,9 @@ public:
     void preloadAllAssets();
     AssetsManager() {};
     Character * createPlayer();
-    Block * createBall();
+    Ball * createBall();
     Block * createBlock(int type = 0);
-    Block * createVerticalWall();
-    Block * createHorizontalWall();
+    Wall * createVerticalWall();
+    Wall * createHorizontalWall();
     ~AssetsManager();
 };

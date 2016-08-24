@@ -3,7 +3,14 @@
 #include <stdint.h>
 #include <functional>
 #include <vector>
+#include "stb_image.h"
 
+/* UTILITIES */
+#define SAFE_DELETE(x) if(x) { delete x; x = nullptr; }
+#define CLEAR_KEY_POINTER_MAP(x) for(auto it = x.begin(); it != x.end(); ++it){ delete it->second; } x.clear();
+#define CLEAR_POINTER_CONTAINER(x) for(auto it = x.begin(); it != x.end(); ++it){ delete *it; } x.clear();
+
+/* CONSTANTS */
 #define DEFAULT_WIDTH 1024
 #define DEFAULT_HEIGHT 768
 #define DEFAULT_FULLSCREEN false
@@ -18,10 +25,23 @@
 #define DEFAULT_CAMERA_UP {0.0f, 1.0f, 0.0f}
 #define CAMERA_ORTO_WIDTH 20.5
 #define CAMERA_ORTO_HEIGHT 20.0
-#define DEFAULT_PLAYER_VELOCITY 0.15f
 
-/* UTILITIES */
-#define SAFE_DELETE(x) if(x) { delete x; x = nullptr; }
+#define PLAYER_VELOCITY 0.25f // Horizontal movement
+#define PLAYER_START_POS { 0, -8.5f, 0.0f }
+#define PLAYER_LIVES 1
+#define PLAYER_SIZE_X 1.0f
+#define PLAYER_SIZE_Y 0.2f
+#define PLAYER_SIZE_Z 0.5f
+#define BALL_VELOCITY -0.2f // Vertical movement (falling down initially)
+#define BALL_SCALE 0.15f
+#define BLOCK_SIZE_X 0.5f
+#define BLOCK_SIZE_Y 0.25f
+#define BLOCK_SIZE_Z 0.5f
+#define GRID_BLOCK_SIZE_X 1
+#define GRID_BLOCK_SIZE_Y 0.5f
+#define WALL_THICKNESS_X 0.25f
+#define WALL_THICKNESS_Y 0.25f
+#define WALL_THICKNESS_Z 0.5f
 
 #define PI 3.141592f
 #define PI_DIV_2 1.570796f
@@ -33,10 +53,16 @@
 #define FPS 90 // Frame Per Seconds
 #define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
 
-typedef void(*FP)();
+#define LOCAL_PATH "./Data/"
+#define TEXTURE_PATH LOCAL_PATH "Textures/"
+#define MESH_PATH LOCAL_PATH "Meshes/"
+#define LEVEL_PATH LOCAL_PATH "Levels/"
+
+/*CUSTOM TYPES */
+typedef uint8_t ButtonsStatus;
 typedef std::function<void()> callback;
 
-// struct so one day I can take the configurations from a file...
+// struct ... one day I can take the configurations from a file...
 struct GameConfig {
     unsigned int screenWidth = DEFAULT_WIDTH;
     unsigned int screeHeight = DEFAULT_HEIGHT;
@@ -111,6 +137,10 @@ struct Mesh {
     unsigned int m_iVertexCount = 0;
     unsigned int m_iIndexCount = 0;
     unsigned short * m_alIndices = nullptr;
+    ~Mesh() {
+        delete[] m_aoVertices;
+        delete[] m_alIndices;
+    };
 };
 
 struct Texture {
@@ -119,6 +149,9 @@ struct Texture {
     int height = 0;
     int channels = 4;
     Vector4 defaultColor = { 0.6f, 0.3f, 0.2f, 1.0f };
+    ~Texture(){
+        stbi_image_free(data);
+    }
 };
 
 struct Collider {
@@ -148,7 +181,6 @@ enum Button {
     NOTHING
 };
 
-
 struct Event {
     std::vector<callback> subscriptions;
     unsigned int subscribe(callback cb) {
@@ -160,5 +192,3 @@ struct Event {
     }
     void fire() { for (callback& cb : subscriptions) cb(); }
 };
-
-typedef uint8_t ButtonsStatus;

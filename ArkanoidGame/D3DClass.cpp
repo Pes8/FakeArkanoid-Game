@@ -501,7 +501,7 @@ bool D3DClass::run() {
     return true;
 }
 
-bool D3DClass::render(Scene * _scene) {
+bool D3DClass::render(const std::vector<GameObject*> * _scene) {
     
     // Clear the back buffer and the depth buffer
     float ClearColor[4] = { 0.0f, 0.125f, 0.1f, 1.0f };
@@ -509,7 +509,7 @@ bool D3DClass::render(Scene * _scene) {
     m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
    
 
-    for (GameObject * _asset : _scene->getObjectList()) {
+    for (GameObject * _asset : * _scene) {
         bool res = loadMesh(_asset);
         if (!res)
             return false;
@@ -525,7 +525,7 @@ bool D3DClass::render(Scene * _scene) {
         // Renders a triangle
         m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
         m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-        if (_asset->hasTexture) {
+        if (_asset->m_oTexture && _asset->m_oTexture->data) {
             loadTexture(_asset->m_oTexture);
             m_pImmediateContext->PSSetShader(m_pPixelShaderTexture, NULL, 0);
             // Set shader texture resource in the pixel shader.

@@ -2,15 +2,14 @@
 
 #include "Types.h"
 #include "GameObject.h"
-#include "Scene.h"
+#include "GameManager.h"
 #include <cmath>
-#include "Scene.h"
+
 
 class FakePhysicsManager {
 private:
     GameObject * player;
     GameObject * ball;
-    Scene * scene;
 
     bool checkCollision(const GameObject & a, const GameObject & b);
     void moveObjects();
@@ -19,5 +18,5 @@ private:
 public:
     static FakePhysicsManager * getInstance();
     void doPhysicUpdate();
-    void initialization(Scene *_scene, GameObject * _player, GameObject * _ball);
+    void initialization(const GameObject * _player, const GameObject * _ball);
 };

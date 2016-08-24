@@ -9,7 +9,7 @@ public:
     
     virtual void setCamera(const Camera & _oCamera);
     virtual bool run();
-    virtual bool render(Scene * _scene);
+    virtual bool render(const std::vector<GameObject*> * _scene);
     virtual bool shutdown();
 
     virtual void CameraGoUp() = delete;

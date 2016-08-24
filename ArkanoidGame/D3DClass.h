@@ -40,7 +40,7 @@ public:
     virtual bool initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fFar, float _fNear, void * _HWND);
 
     virtual bool run();
-    virtual bool render(Scene * _scene);
+    virtual bool render(const std::vector<GameObject*> * _scene);
     virtual bool shutdown();
 
     static GraphicsInterface * getInstance();

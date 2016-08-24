@@ -5,7 +5,7 @@
 #include "InputManager.h"
 #include "FakePhysicsManager.h"
 #include "OSHelper.h"
-#include "Scene.h"
+
 #include "AssetsManager.h"
 
 //ThirdParty includes
@@ -44,57 +44,25 @@ int main() {
     OSHelper * osHelper = systemFactory->getOSHelper();
     FakePhysicsManager * physicsManager = FakePhysicsManager::getInstance();
     AssetsManager * assetsManager = AssetsManager::getInstance();
-    Scene * scene = Scene::getInstance();
+
 
     //Setup & Inizialization of all components
-    gameManager->initialization(systemFactory);
     assetsManager->preloadAllAssets();
+    gameManager->initialization(systemFactory);
+    
 
     //Events subscriptions
     gameManager->OnButtonPressed[UP_BTN].subscribe(std::bind(&GraphicsManager::CameraGoUp, graphicsManager)); //TODO REMOVE
 
     bool not3DError = true;
 
+    
 
 
-
-    for (int i = 0; i < 20; ++i) {
-
-        Block * b = assetsManager->createBlock(i % 14);
-        b->m_vPosition = { -9.5f + i, 9.5f, 0.0f };
-
-        scene->addObject(b);
-
-    }
-
-    Block * wsx = assetsManager->createVerticalWall();
-    Block * wdx = assetsManager->createVerticalWall();
-    Block * wup = assetsManager->createHorizontalWall();
-
-    wsx->m_vPosition = {-10.25,0.0f,0.0f};
-    wdx->m_vPosition = { 10.25,0.0f,0.0f };
-    wup->m_vPosition = {0.0f, 10.0f, 0.0f};
-
-    scene->addObject(wsx);
-    scene->addObject(wdx);
-    scene->addObject(wup);
+    physicsManager->initialization(gameManager->getPlayerInCurrentLevel(), gameManager->getBallInCurrentLevel());
 
 
-    Character * player = assetsManager->createPlayer();
-    Block * ball = assetsManager->createBall();
-
-    scene->addObject(ball);
-
-    gameManager->OnButtonPressed[LEFT_BTN].subscribe(std::bind(&Character::CharGoLeft, player)); //TODO REMOVE
-    gameManager->OnButtonPressed[RIGHT_BTN].subscribe(std::bind(&Character::CharGoRight, player)); //TODO REMOVE
-
-    scene->addObject(player);
-
-
-    physicsManager->initialization(scene, player, ball);
-
-
-    graphicsManager->setScene(scene);
+    graphicsManager->setScene(gameManager->getCurrentLevelScene());
     graphicsManager->setup(gameManager->getGameConfiguration());
     not3DError = graphicsManager->initialization();
     if(not3DError)
@@ -127,7 +95,6 @@ int main() {
 
 
     SAFE_DELETE(osHelper);
-    SAFE_DELETE(scene);
     SAFE_DELETE(inputManager);
     SAFE_DELETE(gameManager);
     SAFE_DELETE(graphicsManager);

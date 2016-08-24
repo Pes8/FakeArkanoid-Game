@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Types.h"
-#include "Scene.h"
 #include "GameObject.h"
 
 class GraphicsManager {
@@ -14,11 +13,11 @@ public:
 
     virtual void CameraGoUp() = 0; //TODO remove
 
-    void setScene(Scene * _scene);
+    void setScene(const std::vector<GameObject*> * _scene);
 
     static GraphicsManager * getInstance() = delete; // Problem: Abstract Factory & Singleton ... Child must implement the singleton construction
 protected:
     static GraphicsManager * instance;
     Camera m_oCamera;
-    Scene * scene;
+    const std::vector<GameObject*> * scene;
 };

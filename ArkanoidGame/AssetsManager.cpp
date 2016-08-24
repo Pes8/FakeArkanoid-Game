@@ -48,11 +48,10 @@ Mesh * AssetsManager::createAABBMesh(float _sizeX, float _sizeY, float _sizeZ, f
 
 Mesh * AssetsManager::importMeshFromObj(std::string _filename) {
     std::ifstream infile(_filename);
-    if (!infile.is_open()) return false;
+    if (!infile.is_open()) return nullptr;
     std::string line;
 
     std::vector< Vector3 > tmpV;
-    std::vector< Vector3 > tmpN;
     
 
     std::vector< VertexInfo > tmpVertex;
@@ -70,11 +69,11 @@ Mesh * AssetsManager::importMeshFromObj(std::string _filename) {
             float x, y, z;
             iss >> x >> y >> z;
             tmpV.push_back({ x, z, y });
-        } else if (code == "vn") {
+        } /*else if (code == "vn") {
             float x, y, z;
             iss >> x >> y >> z;
             tmpN.push_back({ x, z, y });
-        } else if (code == "vt") {
+        } */else if (code == "vt") {
             float x, y;
             iss >> x >> y;
             VertexInfo nv;
@@ -101,13 +100,10 @@ Mesh * AssetsManager::importMeshFromObj(std::string _filename) {
             tmpIndex.push_back(j1);
             tmpIndex.push_back(k1);
 
-
             tmpVertex[i1].position = tmpV[i0];
-            //tmpVertex[i1].norm = tmpN[i2];
             tmpVertex[j1].position = tmpV[j0];
-            //tmpVertex[j1].norm = tmpN[j2];
             tmpVertex[k1].position = tmpV[k0];
-            //tmpVertex[k1].norm = tmpN[k2];
+
 
         }
 
@@ -138,48 +134,48 @@ void AssetsManager::preloadAllAssets() {
 
     //Player Texture
     Texture * _oTexturePlayer = new Texture();
-    _oTexturePlayer->data = stbi_load("./Data/Textures/Player-Texture.png", &_oTexturePlayer->width, &_oTexturePlayer->height, &_oTexturePlayer->channels, _oTexturePlayer->channels);
+    _oTexturePlayer->data = stbi_load(TEXTURE_PATH "Player-Texture.png", &_oTexturePlayer->width, &_oTexturePlayer->height, &_oTexturePlayer->channels, _oTexturePlayer->channels);
     m_oTexMap[PLAYER_INDEX] = _oTexturePlayer;
 
     //Ball Texture
     Texture * _oTextureBall = new Texture();
-    _oTextureBall->data = stbi_load("./Data/Textures/Ball-Texture.jpg", &_oTextureBall->width, &_oTextureBall->height, &_oTextureBall->channels, _oTextureBall->channels);
+    _oTextureBall->data = stbi_load(TEXTURE_PATH "Ball-Texture.jpg", &_oTextureBall->width, &_oTextureBall->height, &_oTextureBall->channels, _oTextureBall->channels);
     m_oTexMap[BALL_INDEX] = _oTextureBall;
 
     //Walls Texture
     Texture * _oTextureWall = new Texture();
-    _oTextureWall->data = stbi_load("./Data/Textures/Walls-Texture.gif", &_oTextureWall->width, &_oTextureWall->height, &_oTextureWall->channels, _oTextureWall->channels);
+    _oTextureWall->data = stbi_load(TEXTURE_PATH "Walls-Texture.gif", &_oTextureWall->width, &_oTextureWall->height, &_oTextureWall->channels, _oTextureWall->channels);
     m_oTexMap[WALLS_INDEX] = _oTextureWall;
 
     //Blocks Texture
     Texture * _oTexturBlocks = new Texture();
-    _oTexturBlocks->data = stbi_load("./Data/Textures/Blocks-Texture.png", &_oTexturBlocks->width, &_oTexturBlocks->height, &_oTexturBlocks->channels, _oTexturBlocks->channels);
+    _oTexturBlocks->data = stbi_load(TEXTURE_PATH "Blocks-Texture.png", &_oTexturBlocks->width, &_oTexturBlocks->height, &_oTexturBlocks->channels, _oTexturBlocks->channels);
     m_oTexMap[BLOCK_INDEX] = _oTexturBlocks;
 
 
     /** MESHES **/
 
-    m_oMeshMap[BLOCK_INDEX + 0] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.0f);                    // Red - Normal
-    m_oMeshMap[BLOCK_INDEX + 1] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.0f);                   // Yellow - Normal
-    m_oMeshMap[BLOCK_INDEX + 2] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.0f);                    // Cyan - Normal
-    m_oMeshMap[BLOCK_INDEX + 3] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.0f);                   // Purple - Normal
-    m_oMeshMap[BLOCK_INDEX + 4] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.25f);                   // Orange - Normal
-    m_oMeshMap[BLOCK_INDEX + 5] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.25f);                  // Green - Normal
-    m_oMeshMap[BLOCK_INDEX + 6] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.25f);                   // Blue - Normal
-    m_oMeshMap[BLOCK_INDEX + 7] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.25f);                  // White - Normal
-    m_oMeshMap[BLOCK_INDEX + 8] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.5f);                    // Gold1 - Hard
-    m_oMeshMap[BLOCK_INDEX + 9] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.75f);                   // Gold2 - Hard
-    m_oMeshMap[BLOCK_INDEX + 10] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.5f);                  // Double Gray1 - Hard
-    m_oMeshMap[BLOCK_INDEX + 11] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.75f);                 // Double Gray2 - Hard
-    m_oMeshMap[BLOCK_INDEX + 12] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.5f);                   // Gray1 - Hard
-    m_oMeshMap[BLOCK_INDEX + 13] = createAABBMesh(0.5f, 0.25f, 0.5f, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.75f);                  // Gray2 - Hard
+    m_oMeshMap[BLOCK_INDEX + 0] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.0f);                    // Red - Normal
+    m_oMeshMap[BLOCK_INDEX + 1] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.0f);                   // Yellow - Normal
+    m_oMeshMap[BLOCK_INDEX + 2] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.0f);                    // Cyan - Normal
+    m_oMeshMap[BLOCK_INDEX + 3] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.0f);                   // Purple - Normal
+    m_oMeshMap[BLOCK_INDEX + 4] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.25f);                   // Orange - Normal
+    m_oMeshMap[BLOCK_INDEX + 5] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.25f);                  // Green - Normal
+    m_oMeshMap[BLOCK_INDEX + 6] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.25f);                   // Blue - Normal
+    m_oMeshMap[BLOCK_INDEX + 7] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.25f);                  // White - Normal
+    m_oMeshMap[BLOCK_INDEX + 8] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.5f);                    // Gold1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 9] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.75f);                   // Gold2 - Hard
+    m_oMeshMap[BLOCK_INDEX + 10] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.5f);                  // Double Gray1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 11] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.75f);                 // Double Gray2 - Hard
+    m_oMeshMap[BLOCK_INDEX + 12] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.5f);                   // Gray1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 13] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.75f);                  // Gray2 - Hard
 
-    m_oMeshMap[WALLS_INDEX + 0] = createAABBMesh(0.25f, 10.0f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f);                                 // Wall - vertical
-    m_oMeshMap[WALLS_INDEX + 1] = createAABBMesh(10.25f, 0.25f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f);                                // Wall - horizontal
+    m_oMeshMap[WALLS_INDEX + 0] = createAABBMesh(WALL_THICKNESS_X, CAMERA_ORTO_HEIGHT/2, WALL_THICKNESS_Z, 0.0f, 1.0f, 0.0f, 1.0f);                                 // Wall - vertical
+    m_oMeshMap[WALLS_INDEX + 1] = createAABBMesh(CAMERA_ORTO_WIDTH /2, WALL_THICKNESS_Y, WALL_THICKNESS_Z, 0.0f, 1.0f, 0.0f, 1.0f);                                // Wall - horizontal
 
-    m_oMeshMap[PLAYER_INDEX] = createAABBMesh(1.0f, 0.20f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f);                                     // Player
+    m_oMeshMap[PLAYER_INDEX] = createAABBMesh(PLAYER_SIZE_X, PLAYER_SIZE_Y, PLAYER_SIZE_Z, 0.0f, 1.0f, 0.0f, 1.0f);                                     // Player
 
-    m_oMeshMap[BALL_INDEX] = importMeshFromObj("./Data/Meshes/test-Sphere.obj"); // Ball
+    m_oMeshMap[BALL_INDEX] = importMeshFromObj(MESH_PATH "test-Sphere.obj"); // Ball
     //m_oMeshMap[BALL_INDEX] = createAABBMesh(0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f, 1.0f);                  // TMP - Ball
 
 }
@@ -188,32 +184,29 @@ Character * AssetsManager::createPlayer() {
     Character * player = new Character();
     player->m_oMesh = m_oMeshMap[PLAYER_INDEX];
     player->m_oTexture = m_oTexMap[PLAYER_INDEX];
-    player->hasTexture = player->m_oTexture && player->m_oTexture->data;
-    player->m_vPosition = { 0, -8.5f, 0.0f };
+
+    player->m_vPosition = PLAYER_START_POS;
     player->m_vRotation = { 0.0f, 0.0f, 0.0f };
     player->scale = 1.0f;
-
-    player->collider.active = true;
-    player->collider.sizes = { 1.0f, 0.2f, 0.5f };
-    player->collider.type = Collider::AABB;
 
     return player;
 }
 
-Block * AssetsManager::createBall() {
-    Block * ball = new Block();
+Ball * AssetsManager::createBall() {
+    Ball * ball = new Ball();
     ball->m_oMesh = m_oMeshMap[BALL_INDEX];
     ball->m_oTexture = m_oTexMap[BALL_INDEX];
-    ball->hasTexture = ball->m_oTexture && ball->m_oTexture->data;
+
     ball->m_vRotation = { 0.0f, 0.0f, 0.0f };
     ball->m_vPosition = { 0.0f, 0.0f, 0.0f };
-    ball->scale = 0.25f;
+    ball->scale = BALL_SCALE;
     
-    ball->collider.active = true;
-    ball->collider.radius = ball->scale;
-    ball->collider.type = Collider::SPHERE;
+    ball->collider->active = true;
+    //ball->collider->radius = ball->scale;
+    ball->collider->sizes = {ball->scale, ball->scale, ball->scale};
+    ball->collider->type = Collider::SPHERE;
     
-    ball->m_vVelocity = { 0, -0.15f, 0 };
+    ball->m_vVelocity = { 0, BALL_VELOCITY, 0 };
 
     return ball;
 }
@@ -222,47 +215,50 @@ Block * AssetsManager::createBlock(int type) {
     Block * _block = new Block();
     _block->m_oMesh = m_oMeshMap[BLOCK_INDEX + type];
     _block->m_oTexture = m_oTexMap[BLOCK_INDEX];
-    _block->hasTexture = _block->m_oTexture && _block->m_oTexture->data;
+
     _block->m_vRotation = { 0.0f, 0.0f, 0.0f };
     _block->scale = 1.0f;
 
-    _block->collider.active = true;
-    _block->collider.sizes = { 0.5f, 0.5f, 0.5f };
-    _block->collider.type = Collider::AABB;
+    _block->collider->active = true;
+    _block->collider->sizes = { BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z };
+    _block->collider->type = Collider::AABB;
 
     return _block;
 }
 
-Block * AssetsManager::createVerticalWall() {
-    Block * _wall = new Block();
+Wall * AssetsManager::createVerticalWall() {
+    Wall * _wall = new Wall();
     _wall->m_oMesh = m_oMeshMap[WALLS_INDEX + 0];
     _wall->m_oTexture = m_oTexMap[WALLS_INDEX];
-    _wall->hasTexture = _wall->m_oTexture && _wall->m_oTexture->data;
+
     _wall->m_vRotation = { 0.0f, 0.0f, 0.0f };
     _wall->scale = 1.0f;
 
-    _wall->collider.active = true;
-    _wall->collider.sizes = { 0.25f, 10.0f, 0.25f };
-    _wall->collider.type = Collider::AABB;
+    _wall->collider->active = true;
+    _wall->collider->sizes = { WALL_THICKNESS_X, CAMERA_ORTO_HEIGHT / 2, WALL_THICKNESS_Z };
+    _wall->collider->type = Collider::AABB;
 
     return _wall;
 }
 
-Block * AssetsManager::createHorizontalWall() {
-    Block * _wall = new Block();
+Wall * AssetsManager::createHorizontalWall() {
+    Wall * _wall = new Wall();
     _wall->m_oMesh = m_oMeshMap[WALLS_INDEX + 1];
     _wall->m_oTexture = m_oTexMap[WALLS_INDEX];
-    _wall->hasTexture = _wall->m_oTexture && _wall->m_oTexture->data;
+
     _wall->m_vRotation = { 0.0f, 0.0f, 0.0f };
     _wall->scale = 1.0f;
 
-    _wall->collider.active = true;
-    _wall->collider.sizes = { 10.0f, 0.25f, 0.25f };
-    _wall->collider.type = Collider::AABB;
+    _wall->collider->active = true;
+    _wall->collider->sizes = { CAMERA_ORTO_WIDTH / 2, WALL_THICKNESS_Y, WALL_THICKNESS_Z };
+    _wall->collider->type = Collider::AABB;
 
     return _wall;
 }
 
 AssetsManager::~AssetsManager() {
-//?? chiamare la delete su tutti gli iggetti prima di fre un map.clear ??
+
+    CLEAR_KEY_POINTER_MAP(m_oMeshMap);
+    CLEAR_KEY_POINTER_MAP(m_oTexMap);
+
 }

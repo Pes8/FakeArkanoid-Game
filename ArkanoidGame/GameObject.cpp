@@ -1,6 +1,12 @@
 #include "GameObject.h"
 
+GameObject::GameObject() {
+    m_oTexture = nullptr;
+    m_oMesh = nullptr;
+    collider = nullptr;
+    scale = 1.0f;
+}
+
 GameObject::~GameObject() {
-    //SAFE_DELETE(m_aoVertices);
-    //SAFE_DELETE(m_alIndices);
+    SAFE_DELETE(collider);
 }

@@ -14,7 +14,7 @@ bool OpenGLClass::run() {
     return true;
 }
 
-bool OpenGLClass::render(Scene * _scene) {
+bool OpenGLClass::render(const std::vector<GameObject*> * _scene) {
 
     return true;
 }

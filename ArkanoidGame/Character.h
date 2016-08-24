@@ -3,9 +3,10 @@
 #include "GameObject.h"
 
 struct Character : public GameObject {
+    
+    int m_iLives;
+    
     Character();
-    //virtual void loadMesh();
-    //virtual void loadTexture();
     virtual ~Character();
     void CharGoLeft();
     void CharGoRight();
