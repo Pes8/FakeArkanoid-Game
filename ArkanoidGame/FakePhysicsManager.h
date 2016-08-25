@@ -13,6 +13,7 @@ private:
 
     bool checkCollision(const GameObject & a, const GameObject & b);
     void moveObjects();
+    bool isInside(const GameObject & _obj);
     FakePhysicsManager();
     static FakePhysicsManager * instance;
 public:

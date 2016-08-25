@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 
+
 bool GameManager::quit = false;
 GameManager * GameManager::instance = nullptr;
 
@@ -14,10 +15,10 @@ GameManager * GameManager::getInstance(){
 }
 
 void GameManager::initialization(SystemFactory * _systemFactory){
-    OnButtonPressed[QUIT_BTN].subscribe(std::bind(&GameManager::OnQuitBtn, this));
+    Subscription_QUIT_BTN = OnButtonPressed[QUIT_BTN].subscribe(std::bind(&GameManager::OnQuitBtn, this));
     m_oSystemHelper = _systemFactory->getOSHelper(); // singleton, return only pointer
 
-    readLevel(0);
+    readLevel(1);
 }
 
 void GameManager::processEvent(Button pressedButton){
@@ -53,8 +54,10 @@ const GameObject * GameManager::getBallInCurrentLevel() const {
 }
 
 GameManager::~GameManager() {
-    OnButtonPressed[LEFT_BTN].unsubscribe(playerSubscription_LEFT_BTN); //TODO check if is ok
-    OnButtonPressed[RIGHT_BTN].unsubscribe(playerSubscription_RIGHT_BTN); //TODO check if is ok
+    OnButtonPressed[LEFT_BTN].unsubscribe(P_Subscription_LEFT_BTN); //TODO check if is ok
+    OnButtonPressed[RIGHT_BTN].unsubscribe(P_Subscription_RIGHT_BTN); //TODO check if is ok
+    OnButtonPressed[QUIT_BTN].unsubscribe(Subscription_QUIT_BTN);
+
     delete m_oCurrentLevel;
 }
 
@@ -125,14 +128,19 @@ bool GameManager::readLevel(int _level) {
 
                 Block * b = assetsManager->createBlock(type);
                 b->m_vPosition = pos;
+                b->m_eBlockDestroyed.subscribe(std::bind(&GameManager::OnBlockDestroyed, this, std::placeholders::_1));
                 m_oCurrentLevel->m_oObjectsList.push_back(b);
             }
         }
 
     }
 
-    playerSubscription_LEFT_BTN = OnButtonPressed[LEFT_BTN].subscribe(std::bind(&Character::CharGoLeft, player)); //TODO REMOVE
-    playerSubscription_RIGHT_BTN = OnButtonPressed[RIGHT_BTN].subscribe(std::bind(&Character::CharGoRight, player)); //TODO REMOVE
+    Subscription_PLAYER_DEATH = player->m_ePlayerDeath.subscribe(std::bind(&GameManager::OnPlayerDeath, this));
+    Subcription_BALL_OUTSIDE = ball->m_eBallOutsideScreen.subscribe(std::bind(&GameManager::OnBallExit, this));
+
+    P_Subscription_LEFT_BTN = OnButtonPressed[LEFT_BTN].subscribe(std::bind(&Character::CharGoLeft, player)); //TODO REMOVE
+    P_Subscription_RIGHT_BTN = OnButtonPressed[RIGHT_BTN].subscribe(std::bind(&Character::CharGoRight, player)); //TODO REMOVE
+    P_Subscription_BALL_OUTSIDE = ball->m_eBallOutsideScreen.subscribe(std::bind(&Character::LostLife, player)); // TODO check if it's correct ..
 
     return true;
 }
@@ -146,15 +154,34 @@ void GameManager::OnQuitBtn(){
     GameManager::quit = true;
 }
 
+void GameManager::OnBallExit() {
+    //RESET BALL Position & Velocity
+    m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
+    m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, BALL_VELOCITY, 0.0f };
+    int x = 333;
+}
+
 void GameManager::OnBlockDestroyed(int id) {
     for (auto it = m_oCurrentLevel->m_oObjectsList.begin(); it != m_oCurrentLevel->m_oObjectsList.end(); ++it){
         if ((*it)->_MyID == id) {
-            delete *it;
+            //delete *it; // Can't delete now, because event need to propagate. Block will suicide
             m_oCurrentLevel->m_oObjectsList.erase(it);
 
             break;
         }
     }
+
+    if (m_oCurrentLevel->m_oObjectsList.size() <= 5) { // player, ball and 3 walls
+        // WIN!!
+        int x = 113;
+    }
+}
+
+void GameManager::OnPlayerDeath() {
+    //Game Over!
+    int x = 112;
+    //m_oCurrentLevel->m_oBall->m_eBallOutsideScreen.unsubscribe(P_Subscription_BALL_OUTSIDE);
+    //m_oCurrentLevel->m_oPlayer->m_ePlayerDeath.unsubscribe(Subscription_PLAYER_DEATH);
 }
 
 Level::~Level() {

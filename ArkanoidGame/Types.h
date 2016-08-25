@@ -10,6 +10,7 @@
 #define CLEAR_KEY_POINTER_MAP(x) for(auto it = x.begin(); it != x.end(); ++it){ delete it->second; } x.clear();
 #define CLEAR_POINTER_CONTAINER(x) for(auto it = x.begin(); it != x.end(); ++it){ delete *it; } x.clear();
 
+
 /* CONSTANTS */
 #define DEFAULT_WIDTH 1024
 #define DEFAULT_HEIGHT 768
@@ -28,10 +29,11 @@
 
 #define PLAYER_VELOCITY 0.25f // Horizontal movement
 #define PLAYER_START_POS { 0, - (CAMERA_ORTO_HEIGHT/2 - 1.5f), 0.0f }
-#define PLAYER_LIVES 1
+#define PLAYER_LIVES 3
 #define PLAYER_SIZE_X 1.0f
 #define PLAYER_SIZE_Y 0.2f
 #define PLAYER_SIZE_Z 0.5f
+#define BALL_POSITION {0.0f, 0.0f, 0.0f}
 #define BALL_VELOCITY -0.2f // Vertical movement (falling down initially)
 #define BALL_SCALE 0.15f
 #define BLOCK_SIZE_X 0.5f
@@ -53,7 +55,7 @@
 #define PI_DIV_6 0.523598f
 #define PI_DIV_12 0.261799f
 
-#define FPS 120 // Frame Per Seconds
+#define FPS 90 // Frame Per Seconds
 #define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
 
 #define LOCAL_PATH "./Data/"
@@ -63,7 +65,13 @@
 
 /*CUSTOM TYPES */
 typedef uint8_t ButtonsStatus;
-typedef std::function<void()> callback;
+typedef void(*FP)();
+
+template<typename  T>
+using callback = std::function<void(T)>;
+
+using callback_NP = std::function<void()>; // callback with NO Parameters ... I didn't found any other better solution than using two alias
+
 
 // struct ... one day I can take the configurations from a file...
 struct GameConfig {
@@ -193,9 +201,11 @@ struct ID {
     }
 };
 
+template<typename  T>
 struct Event {
-    std::vector<callback> subscriptions;
-    unsigned int subscribe(callback cb) {
+    T par;
+    std::vector<callback<T>> subscriptions;
+    unsigned int subscribe(callback<T> cb) {
         subscriptions.push_back(cb);
         return subscriptions.size() -1;
     }
@@ -203,5 +213,20 @@ struct Event {
         if(subscriptions.size() > pos)
             subscriptions.erase(subscriptions.begin() + pos);
     }
-    void fire() { for (callback& cb : subscriptions) cb(); }
+    void fire() { for (callback<T>& cb : subscriptions) cb(par); }
+};
+
+template<>
+struct Event<void> {
+    std::vector<callback_NP> subscriptions;
+    unsigned int subscribe(callback_NP cb) {
+        subscriptions.push_back(cb);
+        return subscriptions.size() - 1;
+    }
+    void unsubscribe(unsigned int pos) {
+        if (subscriptions.size() > pos)
+            subscriptions.erase(subscriptions.begin() + pos);
+    }
+
+    void fire() { for (callback_NP& cb : subscriptions) cb(); }
 };

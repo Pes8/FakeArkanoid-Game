@@ -22,9 +22,7 @@ public:
     static GameManager * getInstance();
     void initialization(SystemFactory * _systemFactory);
     void processEvent(Button pressedButton);
-    Event OnButtonPressed[IM__BUTTONS_NUMBER];
-    Event BallOutside;
-    Event PlayerDeath;
+    Event<void> OnButtonPressed[IM__BUTTONS_NUMBER];
     GameConfig * getGameConfiguration() const;
     void startCheckFPS();
     void checkFPS();
@@ -32,7 +30,7 @@ public:
     const GameObject * getPlayerInCurrentLevel() const;
     const GameObject * getBallInCurrentLevel() const;
     ~GameManager();
-    void OnBlockDestroyed(int id);
+    
 private:
     
     static GameManager * instance;
@@ -44,8 +42,17 @@ private:
 
     bool readLevel(int _level);
 
-    int playerSubscription_LEFT_BTN;
-    int playerSubscription_RIGHT_BTN;
+    int P_Subscription_LEFT_BTN;
+    int P_Subscription_RIGHT_BTN;
+    int P_Subscription_BALL_OUTSIDE;
+
+    int Subscription_QUIT_BTN;
+    int Subcription_BALL_OUTSIDE;
+    int Subscription_PLAYER_DEATH;
+    
+    void OnBallExit();
+    void OnBlockDestroyed(int id);
+    void OnPlayerDeath();
 
     GameManager();
     void OnQuitBtn();

@@ -7,4 +7,6 @@ struct Block : public GameObject{
     Block();
     virtual ~Block();
     virtual void hit();
+    Event<int> m_eBlockDestroyed;
+    bool m_bCracked;
 };

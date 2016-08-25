@@ -25,6 +25,15 @@ void Character::CharGoRight() {
         m_vVelocity.x += PLAYER_VELOCITY;
 }
 
+void Character::LostLife() {
+    --m_iLives;
+
+    if (m_iLives <= 0) {
+        m_ePlayerDeath.fire();
+        m_ePlayerDeath.subscriptions.clear();
+    }
+}
+
 void Character::hit() {
     //Do nothing
 }

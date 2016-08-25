@@ -32,5 +32,8 @@ public:
     Block * createBlock(int type = 0);
     Wall * createVerticalWall();
     Wall * createHorizontalWall();
+
+    Texture * getTexture(int id) const;
+
     ~AssetsManager();
 };

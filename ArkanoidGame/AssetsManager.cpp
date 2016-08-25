@@ -143,14 +143,22 @@ void AssetsManager::preloadAllAssets() {
     m_oTexMap[BALL_INDEX] = _oTextureBall;
 
     //Walls Texture
-    Texture * _oTextureWall = new Texture();
-    _oTextureWall->data = stbi_load(TEXTURE_PATH "Walls-Texture.gif", &_oTextureWall->width, &_oTextureWall->height, &_oTextureWall->channels, _oTextureWall->channels);
-    m_oTexMap[WALLS_INDEX] = _oTextureWall;
+    Texture * _oTextureWallV = new Texture();
+    _oTextureWallV->data = stbi_load(TEXTURE_PATH "Wall-Texture-V.jpg", &_oTextureWallV->width, &_oTextureWallV->height, &_oTextureWallV->channels, _oTextureWallV->channels);
+    m_oTexMap[WALLS_INDEX + 0] = _oTextureWallV;
+
+    Texture * _oTextureWallH = new Texture();
+    _oTextureWallH->data = stbi_load(TEXTURE_PATH "Wall-Texture-H.jpg", &_oTextureWallH->width, &_oTextureWallH->height, &_oTextureWallH->channels, _oTextureWallH->channels);
+    m_oTexMap[WALLS_INDEX + 1] = _oTextureWallH;
 
     //Blocks Texture
     Texture * _oTexturBlocks = new Texture();
     _oTexturBlocks->data = stbi_load(TEXTURE_PATH "Blocks-Texture.png", &_oTexturBlocks->width, &_oTexturBlocks->height, &_oTexturBlocks->channels, _oTexturBlocks->channels);
-    m_oTexMap[BLOCK_INDEX] = _oTexturBlocks;
+    m_oTexMap[BLOCK_INDEX + 0] = _oTexturBlocks;
+
+    Texture * _oTexturBlocksC = new Texture();
+    _oTexturBlocksC->data = stbi_load(TEXTURE_PATH "Cracked-Blocks-Texture.png", &_oTexturBlocksC->width, &_oTexturBlocksC->height, &_oTexturBlocksC->channels, _oTexturBlocksC->channels);
+    m_oTexMap[BLOCK_INDEX + 1] = _oTexturBlocksC;
 
 
     /** MESHES **/
@@ -170,8 +178,8 @@ void AssetsManager::preloadAllAssets() {
     m_oMeshMap[BLOCK_INDEX + 12] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.5f);                   // Gray1 - Hard
     m_oMeshMap[BLOCK_INDEX + 13] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.75f);                  // Gray2 - Hard
 
-    m_oMeshMap[WALLS_INDEX + 0] = createAABBMesh(WALL_THICKNESS_X, CAMERA_ORTO_HEIGHT/2, WALL_THICKNESS_Z, 0.0f, 1.0f, 0.0f, 1.0f);                                 // Wall - vertical
-    m_oMeshMap[WALLS_INDEX + 1] = createAABBMesh(CAMERA_ORTO_WIDTH /2, WALL_THICKNESS_Y, WALL_THICKNESS_Z, 0.0f, 1.0f, 0.0f, 1.0f);                                // Wall - horizontal
+    m_oMeshMap[WALLS_INDEX + 0] = createAABBMesh(WALL_THICKNESS_X, CAMERA_ORTO_HEIGHT/2, WALL_THICKNESS_Z, 0.0f, 1.0f, 0.0f, 20.0f);                 // Wall - vertical
+    m_oMeshMap[WALLS_INDEX + 1] = createAABBMesh(CAMERA_ORTO_WIDTH /2, WALL_THICKNESS_Y, WALL_THICKNESS_Z, 0.0f, 20.0f, 0.0f, 1.0f);                 // Wall - horizontal
 
     m_oMeshMap[PLAYER_INDEX] = createAABBMesh(PLAYER_SIZE_X, PLAYER_SIZE_Y, PLAYER_SIZE_Z, 0.0f, 1.0f, 0.0f, 1.0f);                                     // Player
 
@@ -198,7 +206,7 @@ Ball * AssetsManager::createBall() {
     ball->m_oTexture = m_oTexMap[BALL_INDEX];
 
     ball->m_vRotation = { 0.0f, 0.0f, 0.0f };
-    ball->m_vPosition = { 0.0f, 0.0f, 0.0f };
+    ball->m_vPosition = BALL_POSITION;
     ball->scale = BALL_SCALE;
     
     ball->collider->active = true;
@@ -231,7 +239,7 @@ Block * AssetsManager::createBlock(int type) {
 Wall * AssetsManager::createVerticalWall() {
     Wall * _wall = new Wall();
     _wall->m_oMesh = m_oMeshMap[WALLS_INDEX + 0];
-    _wall->m_oTexture = m_oTexMap[WALLS_INDEX];
+    _wall->m_oTexture = m_oTexMap[WALLS_INDEX + 0];
 
     _wall->m_vRotation = { 0.0f, 0.0f, 0.0f };
     _wall->scale = 1.0f;
@@ -246,7 +254,7 @@ Wall * AssetsManager::createVerticalWall() {
 Wall * AssetsManager::createHorizontalWall() {
     Wall * _wall = new Wall();
     _wall->m_oMesh = m_oMeshMap[WALLS_INDEX + 1];
-    _wall->m_oTexture = m_oTexMap[WALLS_INDEX];
+    _wall->m_oTexture = m_oTexMap[WALLS_INDEX + 1];
 
     _wall->m_vRotation = { 0.0f, 0.0f, 0.0f };
     _wall->scale = 1.0f;
@@ -256,6 +264,10 @@ Wall * AssetsManager::createHorizontalWall() {
     _wall->collider->type = Collider::AABB;
 
     return _wall;
+}
+
+Texture * AssetsManager::getTexture(int id) const{
+    return m_oTexMap.at(id);
 }
 
 AssetsManager::~AssetsManager() {

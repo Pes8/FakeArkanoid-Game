@@ -74,8 +74,19 @@ bool FakePhysicsManager::checkCollision(const GameObject & a, const GameObject &
 void FakePhysicsManager::moveObjects() {
     
     ball->m_vPosition += ball->m_vVelocity;
+    if (!isInside(*ball)) {
+        reinterpret_cast<Ball*>(ball)->m_eBallOutsideScreen.fire();
+    }
+
     player->m_vPosition += player->m_vVelocity;
     player->m_vVelocity *= 0; // No inertia in my game please!
+}
+
+bool FakePhysicsManager::isInside(const GameObject & _obj) {
+    bool x = _obj.m_vPosition.x < CAMERA_ORTO_WIDTH / 2 && _obj.m_vPosition.x > -CAMERA_ORTO_WIDTH / 2;
+    bool y = _obj.m_vPosition.y < CAMERA_ORTO_HEIGHT / 2 && _obj.m_vPosition.y > - CAMERA_ORTO_HEIGHT / 2;
+
+    return x && y;
 }
 
 FakePhysicsManager::FakePhysicsManager() {
