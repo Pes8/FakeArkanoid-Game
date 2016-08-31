@@ -1,16 +1,15 @@
 #include "WindowsGraphicsManager.h"
 
-
 WindowsGraphicsManager::WindowsGraphicsManager() {
     m_o3DClass = nullptr;
 }
 
 
-
 bool WindowsGraphicsManager::setup(GameConfig * config) {
+    g_pConfig = config;
     this->m_bFullscreen = config->fullscreen;
     this->m_iScreenWidth = config->screenWidth;
-    this->m_iScreenHeight = config->screeHeight;
+    this->m_iScreenHeight = config->screenHeight;
     this->m_bVSyncEnabled = config->vsyncEnabled;
 
     m_oCamera.m_fFar = config->cameraFar;
@@ -33,7 +32,7 @@ bool WindowsGraphicsManager::initialization(){
     ZeroMemory(&m_oMsg, sizeof(MSG));
 
     // Initialize the Direct3D object.
-    bool result = m_o3DClass->initialize(m_iScreenWidth, m_iScreenHeight, m_bVSyncEnabled, m_bFullscreen, m_oCamera.m_fFar, m_oCamera.m_fNear, m_hwnd);
+    bool result = m_o3DClass->initialize(g_pConfig->screenWidth, g_pConfig->screenHeight, g_pConfig->vsyncEnabled, g_pConfig->fullscreen, m_oCamera.m_fFar, m_oCamera.m_fNear, m_hwnd);
     if (!result) {
         MessageBox(m_hwnd, "Could not initialize Direct3D", "Error", MB_OK);
         return false;
@@ -64,7 +63,7 @@ bool WindowsGraphicsManager::render(){
     //m_o3DClass->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
 
     //now rendering
-    return m_o3DClass->render(scene);
+    return m_o3DClass->render(scene, ui);
 }
 
 bool WindowsGraphicsManager::shutdown() {

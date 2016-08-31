@@ -11,6 +11,17 @@ enum ButtonKey {
     RIGHT_KEY = VK_RIGHT,
     UP_KEY = VK_UP,
     DOWN_KEY = VK_DOWN,
+    N_KEY = 0x4E,
+    D0_KEY = 0x30,
+    D1_KEY = 0x31,
+    D2_KEY = 0x32,
+    D3_KEY = 0x33,
+    D4_KEY = 0x34,
+    D5_KEY = 0x35,
+    D6_KEY = 0x36,
+    D7_KEY = 0x37,
+    D8_KEY = 0x38,
+    D9_KEY = 0x39,
     NOTHING_KEY = -666
 };
 
@@ -32,6 +43,17 @@ protected:
         RIGHT_KEY,
         UP_KEY,
         DOWN_KEY,
+        N_KEY,
+        D0_KEY,
+        D1_KEY,
+        D2_KEY,
+        D3_KEY,
+        D4_KEY,
+        D5_KEY,
+        D6_KEY,
+        D7_KEY,
+        D8_KEY,
+        D9_KEY,
         NOTHING_KEY
     };
 };

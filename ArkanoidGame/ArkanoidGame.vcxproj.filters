@@ -52,6 +52,12 @@
     <Filter Include="Source Files\Assets">
       <UniqueIdentifier>{fa2ba84a-97e0-4c8f-b08a-d65e35c2b141}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\UI">
+      <UniqueIdentifier>{393f2bb6-2ffc-4c15-86c9-cc8bbfe0e861}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UI">
+      <UniqueIdentifier>{0539ff86-eb67-4e23-b748-2d6801da71f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -111,6 +117,9 @@
     <ClCompile Include="Wall.cpp">
       <Filter>Source Files\Assets</Filter>
     </ClCompile>
+    <ClCompile Include="UIText.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -152,9 +161,6 @@
     <ClInclude Include="D3DClass.h">
       <Filter>Header Files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="stb_image.h">
-      <Filter>Header Files\ThirdPartyLib</Filter>
-    </ClInclude>
     <ClInclude Include="FakePhysicsManager.h">
       <Filter>Header Files\Physics</Filter>
     </ClInclude>
@@ -175,6 +181,15 @@
     </ClInclude>
     <ClInclude Include="Wall.h">
       <Filter>Header Files\Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdPartyLib\stb_image.h">
+      <Filter>Header Files\ThirdPartyLib</Filter>
+    </ClInclude>
+    <ClInclude Include="UIObject.h">
+      <Filter>Header Files\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="UIText.h">
+      <Filter>Header Files\UI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

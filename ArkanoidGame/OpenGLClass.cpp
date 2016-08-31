@@ -14,13 +14,17 @@ bool OpenGLClass::run() {
     return true;
 }
 
-bool OpenGLClass::render(const std::vector<GameObject*> * _scene) {
+bool OpenGLClass::render(const std::vector<GameObject*> * _scene, const std::vector<UIText*> * _ui) {
 
     return true;
 }
 
 bool OpenGLClass::shutdown() {
     return true;
+}
+
+void * OpenGLClass::getHandle() {
+    return nullptr;
 }
 
 GraphicsInterface * OpenGLClass::getInstance() {

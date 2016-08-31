@@ -3,16 +3,16 @@
 #include <stdint.h>
 #include <functional>
 #include <vector>
-#include "stb_image.h"
+#include "ThirdPartyLib/stb_image.h"
 
 /* UTILITIES */
 #define SAFE_DELETE(x) if(x) { delete x; x = nullptr; }
 #define CLEAR_KEY_POINTER_MAP(x) for(auto it = x.begin(); it != x.end(); ++it){ delete it->second; } x.clear();
 #define CLEAR_POINTER_CONTAINER(x) for(auto it = x.begin(); it != x.end(); ++it){ delete *it; } x.clear();
-
+#define CLEAR_POINTER_CONTAINER_FROM_TO(x, f, t) for(auto it = f; it != t; ++it){ delete *it; } x.erase(f, t);
 
 /* CONSTANTS */
-#define DEFAULT_WIDTH 1024
+#define DEFAULT_WIDTH 1366
 #define DEFAULT_HEIGHT 768
 #define DEFAULT_FULLSCREEN false
 #define DEFAULT_STARTLIFES 3
@@ -26,19 +26,28 @@
 #define DEFAULT_CAMERA_UP {0.0f, 1.0f, 0.0f}
 #define CAMERA_ORTO_WIDTH 20.5
 #define CAMERA_ORTO_HEIGHT 20.0
+#define LOCK_FPS true
 
-#define PLAYER_VELOCITY 0.25f // Horizontal movement
+#define UI_FONT_NAME L"Helvetica"
+#define UI_FONT_SIZE_S 12.0f
+#define UI_FONT_SIZE_M 18.0f
+#define UI_FONT_SIZE_L 30.0f
+#define UI_SHOW_FPS true
+
+
+#define PLAYER_VELOCITY 0.35f // Horizontal movement
 #define PLAYER_START_POS { 0, - (CAMERA_ORTO_HEIGHT/2 - 1.5f), 0.0f }
 #define PLAYER_LIVES 3
 #define PLAYER_SIZE_X 1.0f
 #define PLAYER_SIZE_Y 0.2f
 #define PLAYER_SIZE_Z 0.5f
 #define BALL_POSITION {0.0f, 0.0f, 0.0f}
-#define BALL_VELOCITY -0.2f // Vertical movement (falling down initially)
+#define BALL_VELOCITY -0.37f // Vertical movement (falling down initially)
 #define BALL_SCALE 0.15f
 #define BLOCK_SIZE_X 0.5f
 #define BLOCK_SIZE_Y 0.25f
 #define BLOCK_SIZE_Z 0.5f
+#define BLOCK_TYPES 14
 #define WALL_THICKNESS_X 0.25f
 #define WALL_THICKNESS_Y 0.25f
 #define WALL_THICKNESS_Z 0.5f
@@ -46,7 +55,8 @@
 #define GRID_BLOCK_SIZE_Y BLOCK_SIZE_Y * 2
 #define GRID_BLOCK_START_X - (CAMERA_ORTO_WIDTH/2 - WALL_THICKNESS_X - BLOCK_SIZE_X)
 #define GRID_BLOCK_START_Y CAMERA_ORTO_HEIGHT/2 - WALL_THICKNESS_Y - BLOCK_SIZE_Y
-
+#define MAX_RANDOM_BLOCKS 100
+#define MIN_RANDOM_BLOCKS 20
 
 #define PI 3.141592f
 #define PI_DIV_2 1.570796f
@@ -64,7 +74,7 @@
 #define LEVEL_PATH LOCAL_PATH "Levels/"
 
 /*CUSTOM TYPES */
-typedef uint8_t ButtonsStatus;
+typedef uint16_t ButtonsStatus;
 typedef void(*FP)();
 
 template<typename  T>
@@ -76,7 +86,7 @@ using callback_NP = std::function<void()>; // callback with NO Parameters ... I 
 // struct ... one day I can take the configurations from a file...
 struct GameConfig {
     unsigned int screenWidth = DEFAULT_WIDTH;
-    unsigned int screeHeight = DEFAULT_HEIGHT;
+    unsigned int screenHeight = DEFAULT_HEIGHT;
     unsigned int startLife = DEFAULT_STARTLIFES;
     float cameraFar = DEFAULT_CAMERA_FAR;
     float cameraNear = DEFAULT_CAMERA_NEAR;
@@ -189,6 +199,17 @@ enum Button {
     RIGHT_BTN,
     UP_BTN,
     DOWN_BTN,
+    N_BTN,
+    D0_BTN,
+    D1_BTN,
+    D2_BTN,
+    D3_BTN,
+    D4_BTN,
+    D5_BTN,
+    D6_BTN,
+    D7_BTN,
+    D8_BTN,
+    D9_BTN,
     NOTHING
 };
 

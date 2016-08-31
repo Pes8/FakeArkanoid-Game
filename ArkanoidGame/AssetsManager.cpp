@@ -1,5 +1,5 @@
 #include "AssetsManager.h"
-#include "stb_image.h"
+#include "ThirdPartyLib/stb_image.h"
 #include <fstream>
 #include <sstream>
 
@@ -184,7 +184,6 @@ void AssetsManager::preloadAllAssets() {
     m_oMeshMap[PLAYER_INDEX] = createAABBMesh(PLAYER_SIZE_X, PLAYER_SIZE_Y, PLAYER_SIZE_Z, 0.0f, 1.0f, 0.0f, 1.0f);                                     // Player
 
     m_oMeshMap[BALL_INDEX] = importMeshFromObj(MESH_PATH "test-Sphere.obj"); // Ball
-    //m_oMeshMap[BALL_INDEX] = createAABBMesh(0.25f, 0.25f, 0.25f, 0.0f, 1.0f, 0.0f, 1.0f);                  // TMP - Ball
 
 }
 

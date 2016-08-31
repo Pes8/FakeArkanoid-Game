@@ -30,7 +30,7 @@ void Character::LostLife() {
 
     if (m_iLives <= 0) {
         m_ePlayerDeath.fire();
-        m_ePlayerDeath.subscriptions.clear();
+        //m_ePlayerDeath.subscriptions.clear();
     }
 }
 

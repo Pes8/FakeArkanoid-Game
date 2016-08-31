@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.h"
-#include "stb_image.h"
+#include "ThirdPartyLib/stb_image.h"
 
 struct GameObject : public ID{
     

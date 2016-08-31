@@ -2,6 +2,7 @@
 
 #include "Types.h"
 #include "GameObject.h"
+#include "UItext.h"
 
 class GraphicsManager {
 public:
@@ -14,10 +15,13 @@ public:
     virtual void CameraGoUp() = 0; //TODO remove
 
     void setScene(const std::vector<GameObject*> * _scene);
+    void setUI(const std::vector<UIText*>* _ui);
 
     static GraphicsManager * getInstance() = delete; // Problem: Abstract Factory & Singleton ... Child must implement the singleton construction
 protected:
     static GraphicsManager * instance;
     Camera m_oCamera;
     const std::vector<GameObject*> * scene;
+    const std::vector<UIText*> * ui;
+    GameConfig * g_pConfig;
 };

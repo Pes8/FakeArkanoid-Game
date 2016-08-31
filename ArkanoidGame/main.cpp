@@ -10,7 +10,7 @@
 
 //ThirdParty includes
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "ThirdPartyLib/stb_image.h"
 
 
 //Includes reserved for windows builds
@@ -21,11 +21,6 @@
 
 //C++ Includes
 #include <iostream>
-
-
-//TMP 4 tests
-#include "Block.h"
-#include "Character.h"
 
 
 int ID::_ID = 0;
@@ -65,6 +60,7 @@ int main() {
 
 
     graphicsManager->setScene(gameManager->getCurrentLevelScene());
+    graphicsManager->setUI(gameManager->getCurrentUI());
     graphicsManager->setup(gameManager->getGameConfiguration());
     not3DError = graphicsManager->initialization();
     if(not3DError)

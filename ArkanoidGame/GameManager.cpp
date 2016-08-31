@@ -2,7 +2,10 @@
 #include "AssetsManager.h"
 #include <fstream>
 #include <sstream>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
+char GameManager::buffer[33] = {0};
 
 bool GameManager::quit = false;
 GameManager * GameManager::instance = nullptr;
@@ -16,7 +19,20 @@ GameManager * GameManager::getInstance(){
 
 void GameManager::initialization(SystemFactory * _systemFactory){
     Subscription_QUIT_BTN = OnButtonPressed[QUIT_BTN].subscribe(std::bind(&GameManager::OnQuitBtn, this));
+    Subscription_QUIT_BTN = OnButtonPressed[N_BTN].subscribe(std::bind(&GameManager::loadRandomLevel, this));
+    Subscription_D09_BTN[0] = OnButtonPressed[D0_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 0));
+    Subscription_D09_BTN[1] = OnButtonPressed[D1_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 1));
+    Subscription_D09_BTN[2] = OnButtonPressed[D2_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 2));
+    Subscription_D09_BTN[3] = OnButtonPressed[D3_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 3));
+    Subscription_D09_BTN[4] = OnButtonPressed[D4_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 4));
+    Subscription_D09_BTN[5] = OnButtonPressed[D5_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 5));
+    Subscription_D09_BTN[6] = OnButtonPressed[D6_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 6));
+    Subscription_D09_BTN[7] = OnButtonPressed[D7_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 7));
+    Subscription_D09_BTN[8] = OnButtonPressed[D8_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 8));
+    Subscription_D09_BTN[9] = OnButtonPressed[D9_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 9));
+    
     m_oSystemHelper = _systemFactory->getOSHelper(); // singleton, return only pointer
+    prepareLevel();
 
     readLevel(1);
 }
@@ -36,13 +52,30 @@ void GameManager::startCheckFPS() {
 void GameManager::checkFPS() {
     auto endTime = std::chrono::high_resolution_clock::now();
     unsigned int frameTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - m_oCurrentFrameStartTime).count();
-    if (frameTime < uSPF) {
+
+#if UI_SHOW_FPS
+    //static char buffer[33];
+    unsigned int _realFPS = 1000000 / frameTime;
+#endif // DEBUG
+
+    if (LOCK_FPS &&  frameTime < uSPF) {
         m_oSystemHelper->sleep_uS(uSPF - frameTime);
+#if UI_SHOW_FPS
+        _realFPS = FPS;
+#endif // DEBUG
     }
+
+#if UI_SHOW_FPS
+    m_oUIFPSText->setText(_itoa(_realFPS, buffer, 10));
+#endif // DEBUG
 }
 
 const std::vector<GameObject*> * GameManager::getCurrentLevelScene() const {
     return &(m_oCurrentLevel->m_oObjectsList);
+}
+
+const std::vector<UIText*>* GameManager::getCurrentUI() const {
+    return &m_oCurrentUI;
 }
 
 const GameObject * GameManager::getPlayerInCurrentLevel() const {
@@ -57,12 +90,35 @@ GameManager::~GameManager() {
     OnButtonPressed[LEFT_BTN].unsubscribe(P_Subscription_LEFT_BTN); //TODO check if is ok
     OnButtonPressed[RIGHT_BTN].unsubscribe(P_Subscription_RIGHT_BTN); //TODO check if is ok
     OnButtonPressed[QUIT_BTN].unsubscribe(Subscription_QUIT_BTN);
-
+    CLEAR_POINTER_CONTAINER(m_oCurrentUI);
     delete m_oCurrentLevel;
 }
 
-bool GameManager::readLevel(int _level) {
+void GameManager::resetGame() {
+    //Original Player Position + restore lives
+    m_oCurrentLevel->m_oPlayer->m_vPosition = PLAYER_START_POS;
+    m_oCurrentLevel->m_oPlayer->m_vVelocity = {0.0f, 0.0f, 0.0f};
+    m_oCurrentLevel->m_oPlayer->m_iLives = PLAYER_LIVES;
+    m_oUILivesText->setText(_itoa(m_oCurrentLevel->m_oPlayer->m_iLives, buffer, 10));
+
+    //RESET BALL Position & Velocity
+    m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
+    m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, BALL_VELOCITY, 0.0f };
+
+    // erase only the blocks
+    CLEAR_POINTER_CONTAINER_FROM_TO(m_oCurrentLevel->m_oObjectsList, m_oCurrentLevel->m_oObjectsList.begin() + 5, m_oCurrentLevel->m_oObjectsList.end());
+
+    //Clean UI
+#if UI_SHOW_FPS
+    m_oCurrentUI.erase(m_oCurrentUI.begin() + 6, m_oCurrentUI.end());
+#else
+    m_oCurrentUI.erase(m_oCurrentUI.begin() + 5, m_oCurrentUI.end());
+#endif // SHOW_FPS
+
     
+}
+
+void GameManager::prepareLevel() {
     AssetsManager * assetsManager = AssetsManager::getInstance();
 
     //Walls, a player and a ball always exists
@@ -70,14 +126,14 @@ bool GameManager::readLevel(int _level) {
     Ball * ball = assetsManager->createBall();
 
     Wall * wsx = assetsManager->createVerticalWall();
-    wsx->m_vPosition = { -CAMERA_ORTO_WIDTH/2, 0.0f,0.0f };
+    wsx->m_vPosition = { -CAMERA_ORTO_WIDTH / 2, 0.0f,0.0f };
 
     Wall * wdx = assetsManager->createVerticalWall();
-    wdx->m_vPosition = { CAMERA_ORTO_WIDTH/2, 0.0f,0.0f };
+    wdx->m_vPosition = { CAMERA_ORTO_WIDTH / 2, 0.0f,0.0f };
 
     Wall * wup = assetsManager->createHorizontalWall();
-    wup->m_vPosition = { 0.0f, CAMERA_ORTO_HEIGHT/2, 0.0f };
-    
+    wup->m_vPosition = { 0.0f, CAMERA_ORTO_HEIGHT / 2, 0.0f };
+
     m_oCurrentLevel->m_oPlayer = player;
     m_oCurrentLevel->m_oBall = ball;
 
@@ -87,6 +143,16 @@ bool GameManager::readLevel(int _level) {
     m_oCurrentLevel->m_oObjectsList.push_back(wdx);
     m_oCurrentLevel->m_oObjectsList.push_back(wup);
 
+    Subcription_BALL_OUTSIDE = m_oCurrentLevel->m_oBall->m_eBallOutsideScreen.subscribe(std::bind(&GameManager::OnBallExit, this));
+    P_Subscription_BALL_OUTSIDE = m_oCurrentLevel->m_oBall->m_eBallOutsideScreen.subscribe(std::bind(&Character::LostLife, m_oCurrentLevel->m_oPlayer)); // TODO check if it's correct ..
+    Subscription_PLAYER_DEATH = m_oCurrentLevel->m_oPlayer->m_ePlayerDeath.subscribe(std::bind(&GameManager::OnPlayerDeath, this));
+    P_Subscription_LEFT_BTN = OnButtonPressed[LEFT_BTN].subscribe(std::bind(&Character::CharGoLeft, m_oCurrentLevel->m_oPlayer)); //TODO REMOVE
+    P_Subscription_RIGHT_BTN = OnButtonPressed[RIGHT_BTN].subscribe(std::bind(&Character::CharGoRight, m_oCurrentLevel->m_oPlayer)); //TODO REMOVE
+}
+
+bool GameManager::readLevel(int _level) {
+    
+    AssetsManager * assetsManager = AssetsManager::getInstance();
 
     std::ifstream infile(LEVEL_PATH "L"+std::to_string(_level));
     if (!infile.is_open()) return false;
@@ -105,13 +171,13 @@ bool GameManager::readLevel(int _level) {
             if (c == 'V') {
                 float vel;
                 iss >> vel;
-                ball->m_vVelocity.y = -vel;
+                m_oCurrentLevel->m_oBall->m_vVelocity.y = -vel;
             }
             iss >> c;
             if (c == 'P') {
                 Vector3 pos;
                 iss >> pos.x >> pos.y >> pos.z;
-                ball->m_vPosition = pos;
+                m_oCurrentLevel->m_oBall->m_vPosition = pos;
             }
             
         } else if (code == "BL") {
@@ -135,19 +201,54 @@ bool GameManager::readLevel(int _level) {
 
     }
 
-    Subscription_PLAYER_DEATH = player->m_ePlayerDeath.subscribe(std::bind(&GameManager::OnPlayerDeath, this));
-    Subcription_BALL_OUTSIDE = ball->m_eBallOutsideScreen.subscribe(std::bind(&GameManager::OnBallExit, this));
-
-    P_Subscription_LEFT_BTN = OnButtonPressed[LEFT_BTN].subscribe(std::bind(&Character::CharGoLeft, player)); //TODO REMOVE
-    P_Subscription_RIGHT_BTN = OnButtonPressed[RIGHT_BTN].subscribe(std::bind(&Character::CharGoRight, player)); //TODO REMOVE
-    P_Subscription_BALL_OUTSIDE = ball->m_eBallOutsideScreen.subscribe(std::bind(&Character::LostLife, player)); // TODO check if it's correct ..
-
     return true;
+}
+
+void GameManager::loadRandomLevel() {
+
+    if (m_oCurrentLevel != nullptr) {
+        resetGame();
+    } else {
+        m_oCurrentLevel = new Level();
+        prepareLevel();
+    }
+
+    AssetsManager * assetsManager = AssetsManager::getInstance();
+    
+    srand(time(NULL));
+    unsigned short limit = rand() % 10;
+    for (unsigned short i = 0; i < 20; ++i) {
+        for (unsigned short j = 0; j < 10; ++j) {
+            bool putIt = (rand() % 10) >= limit;
+            if (putIt) {
+                Vector3 pos = { GRID_BLOCK_START_X, GRID_BLOCK_START_Y, 0.0f };
+                pos.x += i * GRID_BLOCK_SIZE_X;
+                pos.y -= j * GRID_BLOCK_SIZE_Y;
+                unsigned short type = rand() % BLOCK_TYPES;
+                Block * b = assetsManager->createBlock(type);
+                b->m_vPosition = pos;
+                b->m_eBlockDestroyed.subscribe(std::bind(&GameManager::OnBlockDestroyed, this, std::placeholders::_1));
+                m_oCurrentLevel->m_oObjectsList.push_back(b);
+            }
+        }
+    }
 }
 
 GameManager::GameManager(){
     config = new GameConfig();
     m_oCurrentLevel = new Level();
+    
+#if UI_SHOW_FPS // UI_SHOW_FPS
+    m_oUIFPSText = new UIText(L"30", 2, {0.0f, 0.0f }, UIText::SMALL);
+    m_oCurrentUI.push_back(m_oUIFPSText);
+#endif // UI_SHOW_FPS
+    m_oUILivesText = new UIText(_itoa(PLAYER_LIVES, buffer, 10), 1, { 100.0f, 670.0f });
+
+    m_oCurrentUI.push_back(new UIText(L"Press 'N' to randomize blocks", 30, {50.0f, 600.0f}, UIText::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Press '0' to '9' to load a level", 33, { 50.0f, 615.0f }, UIText::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Press 'ESC' to Exit", 20, { 50.0f, 630.0f }, UIText::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Lives: ", 8, { 50.0f, 670.0f }));
+    m_oCurrentUI.push_back(m_oUILivesText);
 }
 
 void GameManager::OnQuitBtn(){
@@ -155,10 +256,11 @@ void GameManager::OnQuitBtn(){
 }
 
 void GameManager::OnBallExit() {
-    //RESET BALL Position & Velocity
+    //RESET BALL Position & Velocity and update UI
     m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
     m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, BALL_VELOCITY, 0.0f };
-    int x = 333;
+    
+    m_oUILivesText->setText(_itoa(m_oCurrentLevel->m_oPlayer->m_iLives-1, buffer, 10));
 }
 
 void GameManager::OnBlockDestroyed(int id) {
@@ -172,16 +274,34 @@ void GameManager::OnBlockDestroyed(int id) {
     }
 
     if (m_oCurrentLevel->m_oObjectsList.size() <= 5) { // player, ball and 3 walls
-        // WIN!!
-        int x = 113;
+        //WIN!!
+                                                       
+        //RESET BALL Position & Velocity and update UI
+        m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
+        m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, 0.0f, 0.0f };
+
+        m_oCurrentUI.push_back(new UIText(L"YOU WIN!", 9, { 500.0f, 350.0f }, UIText::LARGE));
     }
 }
 
 void GameManager::OnPlayerDeath() {
     //Game Over!
-    int x = 112;
-    //m_oCurrentLevel->m_oBall->m_eBallOutsideScreen.unsubscribe(P_Subscription_BALL_OUTSIDE);
-    //m_oCurrentLevel->m_oPlayer->m_ePlayerDeath.unsubscribe(Subscription_PLAYER_DEATH);
+    m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
+    m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, 0.0f, 0.0f };
+    
+    m_oCurrentUI.push_back(new UIText(L"GAME OVER!", 11, { 500.0f, 350.0f }, UIText::LARGE));
+}
+
+void GameManager::OnLoadLevel(int _level) {
+    if (m_oCurrentLevel != nullptr) {
+        resetGame();
+    } else {
+        m_oCurrentLevel = new Level();
+        prepareLevel();
+    }
+
+
+    readLevel(_level);
 }
 
 Level::~Level() {

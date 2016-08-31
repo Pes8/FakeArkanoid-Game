@@ -6,6 +6,11 @@
 #include <d3dcommon.h>
 #include <dxgi.h>
 #include <DirectXMath.h>
+
+//2D for UI
+#include <D2d1.h>
+#include <Dwrite.h>
+
 #include "Types.h"
 
 
@@ -40,11 +45,12 @@ public:
     virtual bool initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fFar, float _fNear, void * _HWND);
 
     virtual bool run();
-    virtual bool render(const std::vector<GameObject*> * _scene);
+    virtual bool render(const std::vector<GameObject*> * _scene, const std::vector<UIText*> * _ui);
     virtual bool shutdown();
 
     static GraphicsInterface * getInstance();
 
+    virtual void * getHandle();
 
     virtual void setCamera(const Camera & _oCamera);
 
@@ -85,6 +91,14 @@ private:
     XMMATRIX                     m_World;
     XMMATRIX                     m_View;
     XMMATRIX                     m_Projection;
+
+    ID2D1Factory *               m_pD2DFactory;
+    ID2D1RenderTarget *          m_pBackBufferRT;
+    ID2D1SolidColorBrush *       m_pBackBufferBrush;
+    IDWriteFactory *             m_pDWriteFactory;
+    IDWriteTextFormat *          m_pTextFormatS;
+    IDWriteTextFormat *          m_pTextFormatM;
+    IDWriteTextFormat *          m_pTextFormatL;
 
     bool loadMesh(GameObject * _object);
     bool loadTexture(Texture * _tex);

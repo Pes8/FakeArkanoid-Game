@@ -1,4 +1,5 @@
 #include "D3DClass.h"
+#include "WindowsGraphicsManager.h"
 
 
 //--------------------------------------------------------------------------------------
@@ -48,6 +49,12 @@ D3DClass::D3DClass() {
     m_pSampleState = nullptr;
     m_pTextureView = nullptr;
     m_pTexture = nullptr;
+
+    m_pD2DFactory = nullptr;
+    m_pBackBufferRT = nullptr;
+    m_pBackBufferBrush = nullptr;
+    m_pDWriteFactory = nullptr;
+    m_pTextFormatM = nullptr;
 }
 
 D3DClass::~D3DClass() {
@@ -186,6 +193,9 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     unsigned int numDisplayModes, VSyncNumerator, VSyncDenominator;
     DXGI_MODE_DESC * displayModeList;
 
+    VSyncNumerator = 0;
+    VSyncDenominator = 1;
+
     // Create a DirectX graphics interface factory.
     result = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
     if (FAILED(result)) {
@@ -254,6 +264,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
 #ifdef GPU_DEBUG
     createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
+    createDeviceFlags |= D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
     D3D_DRIVER_TYPE driverTypes[] =
     {
@@ -301,6 +312,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     if (FAILED(result))
         return false;
 
+    
     // Create a render target view
     ID3D11Texture2D* pBackBuffer = NULL;
     result = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
@@ -311,7 +323,57 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     pBackBuffer->Release();
     if (FAILED(result))
         return false;
+
     
+    /***** START 2D STUFF *****/
+
+    // Create a Direct2D factory.
+    result = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pD2DFactory);
+    if (FAILED(result))
+        return false;
+
+    IDXGISurface * pD2DBackBuffer;
+    // Get a surface in the swap chain
+    result = m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pD2DBackBuffer));
+    if (FAILED(result))
+        return false;
+
+    // Create the DXGI Surface Render Target.
+    FLOAT dpiX;
+    FLOAT dpiY;
+    m_pD2DFactory->GetDesktopDpi(&dpiX, &dpiY);
+
+    D2D1_RENDER_TARGET_PROPERTIES props =  D2D1::RenderTargetProperties(D2D1_RENDER_TARGET_TYPE_DEFAULT, D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED), dpiX, dpiY);
+    result = m_pD2DFactory->CreateDxgiSurfaceRenderTarget(pD2DBackBuffer, &props, &m_pBackBufferRT);
+    if (FAILED(result))
+        return false;
+
+    // Create a DirectWrite factory.
+    result = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(m_pDWriteFactory), reinterpret_cast<IUnknown **>(&m_pDWriteFactory));
+
+    // Create a DirectWrite text format object.
+    result = m_pDWriteFactory->CreateTextFormat(UI_FONT_NAME, NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, UI_FONT_SIZE_S, L"", &m_pTextFormatS);
+    result = m_pDWriteFactory->CreateTextFormat(UI_FONT_NAME, NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, UI_FONT_SIZE_M, L"", &m_pTextFormatM );
+    result = m_pDWriteFactory->CreateTextFormat(UI_FONT_NAME, NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, UI_FONT_SIZE_L, L"", &m_pTextFormatL);
+
+    // Center the text horizontally and vertically.
+    m_pTextFormatS->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    m_pTextFormatS->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+    m_pTextFormatM->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    m_pTextFormatM->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+    m_pTextFormatL->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+    m_pTextFormatL->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    
+    m_pBackBufferRT->CreateSolidColorBrush(
+        D2D1::ColorF(D2D1::ColorF::White, 0.85f),
+        &m_pBackBufferBrush
+    );
+
+    /***** END 2D STUFF *****/
+
+
     // Initialize the description of the depth buffer.
     D3D11_TEXTURE2D_DESC depthBufferDesc;
     ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
@@ -493,15 +555,15 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     // Initialize the projection matrix
     //m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV2, _iScreenWidth / (FLOAT)_iScreenHeight, _fNear, _fFar);
     m_Projection = XMMatrixOrthographicLH(CAMERA_ORTO_WIDTH, CAMERA_ORTO_HEIGHT, _fNear, _fFar);
-    return true;
 
+    return true;
 }
 
 bool D3DClass::run() {
     return true;
 }
 
-bool D3DClass::render(const std::vector<GameObject*> * _scene) {
+bool D3DClass::render(const std::vector<GameObject*> * _scene, const std::vector<UIText*> * _ui) {
     
     // Clear the back buffer and the depth buffer
     float ClearColor[4] = { 0.0f, 0.125f, 0.1f, 1.0f };
@@ -543,7 +605,23 @@ bool D3DClass::render(const std::vector<GameObject*> * _scene) {
         SAFE_RELEASE(m_pVertexBuffer);
         SAFE_RELEASE(m_pConstantBuffer);
     }
-    
+
+    m_pBackBufferRT->BeginDraw();
+    //D2D1_SIZE_F _2DSize = m_pBackBufferRT->GetSize();
+    for (UIText * _text : *_ui) {
+        switch (_text->m_eType) {
+            case UIText::SMALL:
+                m_pBackBufferRT->DrawText(_text->m_pText, _text->m_iSize, m_pTextFormatS, D2D1::RectF(_text->m_vStartRectPosition.u, _text->m_vStartRectPosition.v, _text->m_vEndRectPosition.u, _text->m_vEndRectPosition.v), m_pBackBufferBrush);
+                break;
+            case UIText::LARGE:
+                m_pBackBufferRT->DrawText(_text->m_pText, _text->m_iSize, m_pTextFormatL, D2D1::RectF(_text->m_vStartRectPosition.u, _text->m_vStartRectPosition.v, _text->m_vEndRectPosition.u, _text->m_vEndRectPosition.v), m_pBackBufferBrush);
+                break;
+            default:
+                m_pBackBufferRT->DrawText(_text->m_pText, _text->m_iSize, m_pTextFormatM, D2D1::RectF(_text->m_vStartRectPosition.u, _text->m_vStartRectPosition.v, _text->m_vEndRectPosition.u, _text->m_vEndRectPosition.v), m_pBackBufferBrush);
+                break;
+        }
+    }
+    m_pBackBufferRT->EndDraw();
 
     // Present our back buffer to our front buffer - nice to meet you!
     m_pSwapChain->Present(0, 0);
@@ -584,10 +662,18 @@ bool D3DClass::shutdown() {
     HRESULT Result = m_pd3dDevice->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&DebugDevice));
     Result = DebugDevice->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
     DebugDevice->Release();
-
 #endif // DEBUG
 
     SAFE_RELEASE(m_pd3dDevice);
+
+    SAFE_RELEASE(m_pD2DFactory);
+    SAFE_RELEASE(m_pBackBufferRT);
+    SAFE_RELEASE(m_pBackBufferBrush);
+    SAFE_RELEASE(m_pDWriteFactory);
+    SAFE_RELEASE(m_pTextFormatM);
+    SAFE_RELEASE(m_pTextFormatS);
+    SAFE_RELEASE(m_pTextFormatM);
+    SAFE_RELEASE(m_pTextFormatL);
 
     return true;
 }
@@ -597,6 +683,10 @@ GraphicsInterface * D3DClass::getInstance() {
         D3DClass::instance = new D3DClass();
     }
     return D3DClass::instance;
+}
+
+void * D3DClass::getHandle() {
+    return m_pd3dDevice;
 }
 
 void D3DClass::setCamera(const Camera & _oCamera) {

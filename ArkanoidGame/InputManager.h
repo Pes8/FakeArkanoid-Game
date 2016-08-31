@@ -3,7 +3,7 @@
 #include <vector>
 #include "Types.h"
 
-#define IM__BUTTONS_NUMBER 8
+#define IM__BUTTONS_NUMBER 19
 
 class InputManager {
 public:
