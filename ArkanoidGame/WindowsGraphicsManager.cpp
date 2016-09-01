@@ -31,10 +31,66 @@ bool WindowsGraphicsManager::initialization(){
     initializeWindow();
     ZeroMemory(&m_oMsg, sizeof(MSG));
 
-    // Initialize the Direct3D object.
-    bool result = m_o3DClass->initialize(g_pConfig->screenWidth, g_pConfig->screenHeight, g_pConfig->vsyncEnabled, g_pConfig->fullscreen, m_oCamera.m_fFar, m_oCamera.m_fNear, m_hwnd);
+    bool result = true;
+
+    if (g_pConfig->forceOpenGL_Windows) {
+        //OpenGL stuff...
+        m_hdc = GetDC(m_hwnd);
+        if (!m_hdc){
+            MessageBox(m_hwnd, "Failed to Get the Window Device Context", "Device Context Error", MB_OK);
+            return false;
+        }
+
+        // number of available formats
+        int indexPixelFormat = 0;
+
+        PIXELFORMATDESCRIPTOR pfd = {
+            sizeof(PIXELFORMATDESCRIPTOR),				// Size Of This Pixel Format Descriptor
+            1,											// Version Number
+            PFD_DRAW_TO_WINDOW |						// Format Must Support Window
+            PFD_SUPPORT_OPENGL |						// Format Must Support OpenGL
+            PFD_DOUBLEBUFFER,							// Must Support Double Buffering
+            PFD_TYPE_RGBA,								// Request An RGBA Format
+            32,										// Select Our Color Depth
+            0, 0, 0, 0, 0, 0,							// Color Bits Ignored
+            0,											// No Alpha Buffer
+            0,											// Shift Bit Ignored
+            0,											// No Accumulation Buffer
+            0, 0, 0, 0,									// Accumulation Bits Ignored
+            16,											// 16Bit Z-Buffer (Depth Buffer)  
+            0,											// No Stencil Buffer
+            0,											// No Auxiliary Buffer
+            PFD_MAIN_PLANE,								// Main Drawing Layer
+            0,											// Reserved
+            0, 0, 0										// Layer Masks Ignored
+        };
+
+        // Choose the closest pixel format available
+        indexPixelFormat = ChoosePixelFormat(m_hdc, &pfd);
+
+        // Set the pixel format for the provided window DC
+        SetPixelFormat(m_hdc, indexPixelFormat, &pfd);
+
+        DescribePixelFormat(m_hdc, indexPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+
+        // create the rendering context
+        m_hglrc = wglCreateContext(m_hdc);
+        if (!m_hglrc){
+            MessageBox(m_hwnd, "Failed to Create the OpenGL Rendering Context", "OpenGL Rendering Context Error", MB_OK);
+        }
+        // make hglrc current rc
+        if (!wglMakeCurrent(m_hdc, m_hglrc)){
+            MessageBox(m_hwnd, "Failed to make OpenGL Rendering Context current", "OpenGL Rendering Context Error", MB_OK);
+            return false;
+        }
+        //MessageBoxA(0, (char*)glGetString(GL_VERSION), "OPENGL VERSION", 0);
+    }
+
+
+    result &= m_o3DClass->initialize(g_pConfig->screenWidth, g_pConfig->screenHeight, g_pConfig->vsyncEnabled, g_pConfig->fullscreen, m_oCamera.m_fFar, m_oCamera.m_fNear, m_hwnd);
+    
     if (!result) {
-        MessageBox(m_hwnd, "Could not initialize Direct3D", "Error", MB_OK);
+        MessageBox(m_hwnd, "Could not initialize 3D Graphics", "Error", MB_OK);
         return false;
     }
 
@@ -59,9 +115,6 @@ bool WindowsGraphicsManager::render(){
         DispatchMessage(&m_oMsg);
     }
 
-    // Clear the buffers to begin the scene.
-    //m_o3DClass->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
-
     //now rendering
     return m_o3DClass->render(scene, ui);
 }
@@ -82,6 +135,24 @@ bool WindowsGraphicsManager::shutdown() {
     // Fix the display settings if leaving full screen mode.
     if (m_bFullscreen) {
         ChangeDisplaySettings(NULL, 0);
+    }
+
+    if (m_hglrc) {
+        if (!wglMakeCurrent(NULL, NULL)){
+            MessageBox(NULL, "Release Of DC And RC Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
+            return false;
+        }
+
+        if (!wglDeleteContext(m_hglrc)) {
+            MessageBox(NULL, "Release Rendering Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
+            return false;
+        }
+        m_hglrc = nullptr;
+    }
+
+    if (m_hdc && !ReleaseDC(m_hwnd, m_hdc)){
+        MessageBox(NULL, "Release Device Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
+        m_hdc = nullptr;
     }
 
     // Remove the window.
@@ -171,7 +242,8 @@ void WindowsGraphicsManager::showWindow() {
     ShowWindow(m_hwnd, SW_SHOW);
     SetForegroundWindow(m_hwnd);
     SetFocus(m_hwnd);
-
+    UpdateWindow(m_hwnd);
+    SetForegroundWindow(m_hwnd);
     // Hide the mouse cursor.
     ShowCursor(false);
 }

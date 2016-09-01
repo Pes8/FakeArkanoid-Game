@@ -66,40 +66,32 @@ bool D3DClass::loadMesh(GameObject * _object) {
 
     m_World = XMMatrixIdentity();
 
-    unsigned int totalVertices = _object->m_oMesh->m_iVertexCount;
-    unsigned int _numDrawVertex = _object->m_oMesh->m_iIndexCount;
-
-    SimpleVertex * vertices = new SimpleVertex[totalVertices];
-    memcpy(vertices, _object->m_oMesh->m_aoVertices, sizeof(VertexInfo) * totalVertices);
-
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(SimpleVertex) * totalVertices;
+    bd.ByteWidth = sizeof(VertexInfo) * _object->m_oMesh->m_iVertexCount;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bd.CPUAccessFlags = 0;
     D3D11_SUBRESOURCE_DATA InitData;
     ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = vertices;
+    InitData.pSysMem = _object->m_oMesh->m_aoVertices;
     result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
     if (FAILED(result))
         return false;
 
     // Set vertex buffer
-    UINT stride = sizeof(SimpleVertex);
+    UINT stride = sizeof(VertexInfo);
     UINT offset = 0;
     m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
 
-    WORD * indices = new WORD[_numDrawVertex];
-    memcpy(indices, _object->m_oMesh->m_alIndices, sizeof(WORD) * _numDrawVertex);
     
     // Create index buffer
-
     bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(WORD) * _numDrawVertex;
+    bd.ByteWidth = sizeof(unsigned short) * _object->m_oMesh->m_iIndexCount;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
-    InitData.pSysMem = indices;
+    ZeroMemory(&InitData, sizeof(InitData));
+    InitData.pSysMem = _object->m_oMesh->m_alIndices;
     result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
     if (FAILED(result))
         return false;
@@ -118,18 +110,12 @@ bool D3DClass::loadMesh(GameObject * _object) {
     result = m_pd3dDevice->CreateBuffer(&bd, NULL, &m_pConstantBuffer);
     if (FAILED(result))
         return false;
+
     //Update world matrix
     m_World *= XMMatrixScaling(_object->scale, _object->scale, _object->scale);
     m_World *= XMMatrixTranslation(_object->m_vPosition.x, _object->m_vPosition.y, _object->m_vPosition.z);
     m_World *= XMMatrixRotationRollPitchYaw(_object->m_vRotation.x, _object->m_vRotation.y, _object->m_vRotation.z);
-    
 
-    // Release the arrays now that the vertex and index buffers have been created and loaded.
-    delete[] vertices;
-    vertices = nullptr;
-
-    delete[] indices;
-    indices = nullptr;
 
     return true;
 }

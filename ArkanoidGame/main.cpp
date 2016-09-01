@@ -15,6 +15,7 @@
 
 //Includes reserved for windows builds
 #ifdef WINDOWS 
+#define WIN32_LEAN_AND_MEAN
 #include "WindowsSystemFactory.h"
 #include <Windows.h>
 #endif // WINDOWS

@@ -1,5 +1,6 @@
 #pragma once
 
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include "GraphicsManager.h"
 #include "D3DClass.h"
@@ -8,6 +9,9 @@
 #include <DirectXMath.h>
 
 using namespace DirectX;
+
+
+
 
 class WindowsGraphicsManager : public GraphicsManager {
 public:
@@ -39,6 +43,10 @@ private:
     MSG m_oMsg;
 
     GraphicsInterface * m_o3DClass;
+
+    //OpenGL stuff
+    HDC m_hdc; // device context handle
+    HGLRC m_hglrc; // OpenGL rendering context
 };
 
 //static WindowsGraphicsManager* ApplicationHandle = 0; ##1##

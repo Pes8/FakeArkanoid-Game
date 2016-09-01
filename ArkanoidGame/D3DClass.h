@@ -21,16 +21,6 @@
 using namespace DirectX;
 
 
-//----------------------
-// Structures
-//----------------------
-struct SimpleVertex{
-    XMFLOAT3 Pos;
-    XMFLOAT4 Color;
-    XMFLOAT2 UV;
-};
-
-
 struct ConstantBuffer{
     XMMATRIX mWorld;
     XMMATRIX mView;
