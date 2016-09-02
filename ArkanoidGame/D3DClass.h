@@ -17,7 +17,7 @@
 
 /* UTILITIES */
 #define SAFE_RELEASE(x) if(x) { x->Release(); x = NULL; }
-
+#define RELEASE_KEY_POINTER_MAP(x) for(auto it = x.begin(); it != x.end(); ++it){ it->second->Release(); } x.clear();
 
 using namespace DirectX;
 
@@ -28,7 +28,14 @@ struct ConstantBuffer{
     XMMATRIX mProjection;
 };
 
-
+struct MeshInfo {
+    ID3D11Buffer * m_pVertexBuffer;
+    ID3D11Buffer * m_pIndexBuffer;
+    ~MeshInfo() {
+        m_pVertexBuffer->Release();
+        m_pIndexBuffer->Release();
+    };
+};
 
 __declspec(align(16)) class D3DClass : public GraphicsInterface {
 public:
@@ -70,11 +77,7 @@ private:
     ID3D11PixelShader *          m_pPixelShaderColor;
     ID3D11PixelShader *          m_pPixelShaderTexture;
     ID3D11SamplerState *         m_pSampleState;
-    ID3D11Texture2D *            m_pTexture;
-    ID3D11ShaderResourceView *   m_pTextureView;
     ID3D11InputLayout *          m_pVertexLayout;
-    ID3D11Buffer *               m_pVertexBuffer;
-    ID3D11Buffer *               m_pIndexBuffer;
     ID3D11Buffer *               m_pConstantBuffer;
     ID3D11Texture2D *            m_pDepthStencilBuffer;
     ID3D11DepthStencilState *    m_pDepthStencilState;
@@ -94,7 +97,8 @@ private:
     ConstantBuffer               m_CB;
 
     std::map<int, ID3D11ShaderResourceView*> m_oTexMap;
+    std::map<int, MeshInfo *> m_oMeshMap;
 
-    bool loadMesh(GameObject * _object);
+    int loadMesh(GameObject * _object);
     int loadTexture(Texture * _tex);
 };

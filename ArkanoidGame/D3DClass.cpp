@@ -40,15 +40,11 @@ D3DClass::D3DClass() {
     m_pPixelShaderColor = nullptr;
     m_pPixelShaderTexture = nullptr;
     m_pVertexLayout = nullptr;
-    m_pVertexBuffer = nullptr;
-    m_pIndexBuffer = nullptr;
     m_pConstantBuffer = nullptr;
     m_pDepthStencilBuffer = nullptr;
     m_pDepthStencilState = nullptr;
     m_pDepthStencilView = nullptr;
     m_pSampleState = nullptr;
-    m_pTextureView = nullptr;
-    m_pTexture = nullptr;
 
     m_pD2DFactory = nullptr;
     m_pBackBufferRT = nullptr;
@@ -61,56 +57,53 @@ D3DClass::~D3DClass() {
 
 }
 
-bool D3DClass::loadMesh(GameObject * _object) {
-    HRESULT result;
+int D3DClass::loadMesh(GameObject * _object) {
+    
+    if (m_oMeshMap.find(_object->m_oMesh->_MyID) == m_oMeshMap.end()) {
+        //not found
+        MeshInfo * _meshInfo = new MeshInfo();
 
+        D3D11_BUFFER_DESC bd;
+        ZeroMemory(&bd, sizeof(bd));
+        bd.Usage = D3D11_USAGE_DYNAMIC;
+        bd.ByteWidth = sizeof(VertexInfo) * _object->m_oMesh->m_iVertexCount;
+        bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        D3D11_SUBRESOURCE_DATA InitData;
+        ZeroMemory(&InitData, sizeof(InitData));
+        InitData.pSysMem = _object->m_oMesh->m_aoVertices;
+        HRESULT result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &_meshInfo->m_pVertexBuffer);
+        if (FAILED(result))
+            return false;
+
+
+        // Create index buffer
+        bd.Usage = D3D11_USAGE_DYNAMIC;
+        bd.ByteWidth = sizeof(unsigned short) * _object->m_oMesh->m_iIndexCount;
+        bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        ZeroMemory(&InitData, sizeof(InitData));
+        InitData.pSysMem = _object->m_oMesh->m_alIndices;
+        result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &_meshInfo->m_pIndexBuffer);
+        if (FAILED(result))
+            return false;
+
+
+        // Set primitive topology
+        m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        m_oMeshMap[_object->m_oMesh->_MyID] = _meshInfo;
+
+    }
+
+    //Always Update world matrix
     m_World = XMMatrixIdentity();
-
-    D3D11_BUFFER_DESC bd;
-    ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DYNAMIC;
-    bd.ByteWidth = sizeof(VertexInfo) * _object->m_oMesh->m_iVertexCount;
-    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    D3D11_SUBRESOURCE_DATA InitData;
-    ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = _object->m_oMesh->m_aoVertices;
-    result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
-    if (FAILED(result))
-        return false;
-
-    // Set vertex buffer
-    UINT stride = sizeof(VertexInfo);
-    UINT offset = 0;
-    m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-
     
-    // Create index buffer
-    bd.Usage = D3D11_USAGE_DYNAMIC;
-    bd.ByteWidth = sizeof(unsigned short) * _object->m_oMesh->m_iIndexCount;
-    bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    ZeroMemory(&InitData, sizeof(InitData));
-    InitData.pSysMem = _object->m_oMesh->m_alIndices;
-    result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
-    if (FAILED(result))
-        return false;
-
-    // Set index buffer
-    m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-    // Set primitive topology
-    m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    
-
-    //Update world matrix
     m_World *= XMMatrixScaling(_object->scale, _object->scale, _object->scale);
     m_World *= XMMatrixTranslation(_object->m_vPosition.x, _object->m_vPosition.y, _object->m_vPosition.z);
     m_World *= XMMatrixRotationRollPitchYaw(_object->m_vRotation.x, _object->m_vRotation.y, _object->m_vRotation.z);
 
-
-    return true;
+    return _object->m_oMesh->_MyID;
 }
 
 int D3DClass::loadTexture(Texture * _tex) {
@@ -118,7 +111,7 @@ int D3DClass::loadTexture(Texture * _tex) {
     if (m_oTexMap.find(_tex->_MyID) == m_oTexMap.end()) {
         //not found
 
-        HRESULT hResult;
+        ID3D11Texture2D * m_pTexture;
 
         // Setup the description of the texture.
         D3D11_TEXTURE2D_DESC textureDesc;
@@ -135,7 +128,7 @@ int D3DClass::loadTexture(Texture * _tex) {
         textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
         // Create the empty texture.
-        hResult = m_pd3dDevice->CreateTexture2D(&textureDesc, NULL, &m_pTexture);
+        HRESULT hResult = m_pd3dDevice->CreateTexture2D(&textureDesc, NULL, &m_pTexture);
         if (FAILED(hResult)) {
             return false;
         }
@@ -167,7 +160,7 @@ int D3DClass::loadTexture(Texture * _tex) {
         SAFE_RELEASE(m_pTexture);
         m_oTexMap[_tex->_MyID] = _TexView;
     }
-    return _tex->_MyID;;
+    return _tex->_MyID;
 }
 
 bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fFar, float _fNear, void * _HWND) {
@@ -545,6 +538,11 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
         return false;
 
     m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+    
+    m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
+
+    m_pImmediateContext->PSSetShader(m_pPixelShaderTexture, NULL, 0);
+    m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampleState);
 
     // Initialize the world matrix
     m_World = XMMatrixIdentity();
@@ -571,17 +569,19 @@ bool D3DClass::render(const std::vector<GameObject*> * _scene, const std::vector
     ConstantBuffer cb;
     cb.mView = XMMatrixTranspose(m_View);
     cb.mProjection = XMMatrixTranspose(m_Projection);
-
-    m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
-
-    m_pImmediateContext->PSSetShader(m_pPixelShaderTexture, NULL, 0);
-    m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampleState);
     
-
     for (GameObject * _asset : * _scene) {
-        bool res = loadMesh(_asset);
-        if (!res)
-            return false;
+        int _mh = loadMesh(_asset);
+
+        MeshInfo * _meshInfo = m_oMeshMap[_mh];
+
+        // Set vertex buffer
+        UINT stride = sizeof(VertexInfo);
+        UINT offset = 0;
+        m_pImmediateContext->IASetVertexBuffers(0, 1, &_meshInfo->m_pVertexBuffer, &stride, &offset);
+        // Set index buffer
+        m_pImmediateContext->IASetIndexBuffer(_meshInfo->m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
 
         cb.mWorld = XMMatrixTranspose(m_World);
 
@@ -591,16 +591,9 @@ bool D3DClass::render(const std::vector<GameObject*> * _scene, const std::vector
         
         // Set shader texture resource in the pixel shader.
         m_pImmediateContext->PSSetShaderResources(0, 1, &m_oTexMap[_tw]);
-
-
         
-
         m_pImmediateContext->DrawIndexed(_asset->m_oMesh->m_iIndexCount, 0, 0);
 
-        SAFE_RELEASE(m_pTextureView);
-        SAFE_RELEASE(m_pIndexBuffer);
-        SAFE_RELEASE(m_pVertexBuffer);
-        //SAFE_RELEASE(m_pConstantBuffer);
     }
 
     m_pBackBufferRT->BeginDraw();
@@ -628,10 +621,10 @@ bool D3DClass::render(const std::vector<GameObject*> * _scene, const std::vector
 
 bool D3DClass::shutdown() {
 
-    SAFE_RELEASE(m_pIndexBuffer);
-    SAFE_RELEASE(m_pVertexBuffer);
-    SAFE_RELEASE(m_pConstantBuffer);
+    RELEASE_KEY_POINTER_MAP(m_oTexMap);
+    CLEAR_KEY_POINTER_MAP(m_oMeshMap);
 
+    SAFE_RELEASE(m_pConstantBuffer);
     SAFE_RELEASE(m_pDepthStencilBuffer);
     SAFE_RELEASE(m_pDepthStencilState);
     SAFE_RELEASE(m_pDepthStencilView);
@@ -641,15 +634,11 @@ bool D3DClass::shutdown() {
         m_pImmediateContext->Flush();
     }
 
-    SAFE_RELEASE(m_pVertexBuffer);
-    SAFE_RELEASE(m_pIndexBuffer);
     SAFE_RELEASE(m_pVertexLayout);
     SAFE_RELEASE(m_pVertexShader);
     SAFE_RELEASE(m_pPixelShaderColor);
     SAFE_RELEASE(m_pPixelShaderTexture);
     SAFE_RELEASE(m_pSampleState);
-    SAFE_RELEASE(m_pTextureView);
-    SAFE_RELEASE(m_pTexture);
     SAFE_RELEASE(m_pRenderTargetView);
     SAFE_RELEASE(m_pSwapChain);
     SAFE_RELEASE(m_pImmediateContext);

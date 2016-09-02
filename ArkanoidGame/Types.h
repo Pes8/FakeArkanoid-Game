@@ -100,7 +100,9 @@ struct GameConfig {
 };
 
 struct ID {
+private:
     static int _ID;
+public:
     int _MyID;
     ID() {
         ++(ID::_ID);
@@ -161,7 +163,7 @@ struct VertexInfo {
     Vector2 uv;
 };
 
-struct Mesh : public ID{
+struct Mesh : public ID {
     VertexInfo * m_aoVertices = nullptr;
     unsigned int m_iVertexCount = 0;
     unsigned int m_iIndexCount = 0;
@@ -172,7 +174,7 @@ struct Mesh : public ID{
     };
 };
 
-struct Texture : public ID{
+struct Texture : public ID {
     unsigned char * data = nullptr;
     int width = 0;
     int height = 0;
