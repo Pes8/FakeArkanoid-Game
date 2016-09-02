@@ -68,10 +68,10 @@ bool D3DClass::loadMesh(GameObject * _object) {
 
     D3D11_BUFFER_DESC bd;
     ZeroMemory(&bd, sizeof(bd));
-    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.Usage = D3D11_USAGE_DYNAMIC;
     bd.ByteWidth = sizeof(VertexInfo) * _object->m_oMesh->m_iVertexCount;
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    bd.CPUAccessFlags = 0;
+    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     D3D11_SUBRESOURCE_DATA InitData;
     ZeroMemory(&InitData, sizeof(InitData));
     InitData.pSysMem = _object->m_oMesh->m_aoVertices;
@@ -86,10 +86,10 @@ bool D3DClass::loadMesh(GameObject * _object) {
 
     
     // Create index buffer
-    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.Usage = D3D11_USAGE_DYNAMIC;
     bd.ByteWidth = sizeof(unsigned short) * _object->m_oMesh->m_iIndexCount;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    bd.CPUAccessFlags = 0;
+    bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     ZeroMemory(&InitData, sizeof(InitData));
     InitData.pSysMem = _object->m_oMesh->m_alIndices;
     result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pIndexBuffer);
@@ -102,14 +102,7 @@ bool D3DClass::loadMesh(GameObject * _object) {
     // Set primitive topology
     m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // Create the constant buffer
-    bd.Usage = D3D11_USAGE_DEFAULT;
-    bd.ByteWidth = sizeof(ConstantBuffer);
-    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bd.CPUAccessFlags = 0;
-    result = m_pd3dDevice->CreateBuffer(&bd, NULL, &m_pConstantBuffer);
-    if (FAILED(result))
-        return false;
+    
 
     //Update world matrix
     m_World *= XMMatrixScaling(_object->scale, _object->scale, _object->scale);
@@ -120,54 +113,61 @@ bool D3DClass::loadMesh(GameObject * _object) {
     return true;
 }
 
-bool D3DClass::loadTexture(Texture * _tex) {
+int D3DClass::loadTexture(Texture * _tex) {
     
-    HRESULT hResult;
-    
-    // Setup the description of the texture.
-    D3D11_TEXTURE2D_DESC textureDesc;
-    textureDesc.Height = _tex->height;
-    textureDesc.Width = _tex->width;
-    textureDesc.MipLevels = 0;
-    textureDesc.ArraySize = 1;
-    textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    textureDesc.SampleDesc.Count = 1;
-    textureDesc.SampleDesc.Quality = 0;
-    textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-    textureDesc.CPUAccessFlags = 0;
-    textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+    if (m_oTexMap.find(_tex->_MyID) == m_oTexMap.end()) {
+        //not found
 
-    // Create the empty texture.
-    hResult = m_pd3dDevice->CreateTexture2D(&textureDesc, NULL, &m_pTexture);
-    if (FAILED(hResult)) {
-        return false;
+        HRESULT hResult;
+
+        // Setup the description of the texture.
+        D3D11_TEXTURE2D_DESC textureDesc;
+        textureDesc.Height = _tex->height;
+        textureDesc.Width = _tex->width;
+        textureDesc.MipLevels = 0;
+        textureDesc.ArraySize = 1;
+        textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        textureDesc.SampleDesc.Count = 1;
+        textureDesc.SampleDesc.Quality = 0;
+        textureDesc.Usage = D3D11_USAGE_DEFAULT;
+        textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+        textureDesc.CPUAccessFlags = 0;
+        textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+        // Create the empty texture.
+        hResult = m_pd3dDevice->CreateTexture2D(&textureDesc, NULL, &m_pTexture);
+        if (FAILED(hResult)) {
+            return false;
+        }
+
+        // Set the row pitch of the targa image data.
+        unsigned int rowPitch = (_tex->width * 4) * sizeof(unsigned char);
+
+        // Copy the image data into the texture.
+        m_pImmediateContext->UpdateSubresource(m_pTexture, 0, NULL, _tex->data, rowPitch, 0);
+
+
+        // Setup the shader resource view description.
+        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+        srvDesc.Format = textureDesc.Format;
+        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        srvDesc.Texture2D.MostDetailedMip = 0;
+        srvDesc.Texture2D.MipLevels = -1;
+
+        ID3D11ShaderResourceView * _TexView;
+
+        // Create the shader resource view for the texture.
+        hResult = m_pd3dDevice->CreateShaderResourceView(m_pTexture, &srvDesc, &_TexView);
+        if (FAILED(hResult)) {
+            return false;
+        }
+
+        // Generate mipmaps for this texture.
+        m_pImmediateContext->GenerateMips(_TexView);
+        SAFE_RELEASE(m_pTexture);
+        m_oTexMap[_tex->_MyID] = _TexView;
     }
-
-    // Set the row pitch of the targa image data.
-    unsigned int rowPitch = (_tex->width * 4) * sizeof(unsigned char);
-
-    // Copy the targa image data into the texture.
-    m_pImmediateContext->UpdateSubresource(m_pTexture, 0, NULL, _tex->data, rowPitch, 0);
-
-
-    // Setup the shader resource view description.
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-    srvDesc.Format = textureDesc.Format;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = -1;
-
-    // Create the shader resource view for the texture.
-    hResult = m_pd3dDevice->CreateShaderResourceView(m_pTexture, &srvDesc, &m_pTextureView);
-    if (FAILED(hResult)) {
-        return false;
-    }
-
-    // Generate mipmaps for this texture.
-    m_pImmediateContext->GenerateMips(m_pTextureView);
-    SAFE_RELEASE(m_pTexture);
-    return true;
+    return _tex->_MyID;;
 }
 
 bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fFar, float _fNear, void * _HWND) {
@@ -533,7 +533,18 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
         return false;
     }
 
+    // Create the constant buffer
+    D3D11_BUFFER_DESC bd;
+    ZeroMemory(&bd, sizeof(bd));
+    bd.Usage = D3D11_USAGE_DEFAULT;
+    bd.ByteWidth = sizeof(ConstantBuffer);
+    bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    bd.CPUAccessFlags = 0;
+    result = m_pd3dDevice->CreateBuffer(&bd, NULL, &m_pConstantBuffer);
+    if (FAILED(result))
+        return false;
 
+    m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 
     // Initialize the world matrix
     m_World = XMMatrixIdentity();
@@ -556,40 +567,40 @@ bool D3DClass::render(const std::vector<GameObject*> * _scene, const std::vector
     m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, ClearColor);
     m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
    
+    // Update variables
+    ConstantBuffer cb;
+    cb.mView = XMMatrixTranspose(m_View);
+    cb.mProjection = XMMatrixTranspose(m_Projection);
+
+    m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
+
+    m_pImmediateContext->PSSetShader(m_pPixelShaderTexture, NULL, 0);
+    m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampleState);
+    
 
     for (GameObject * _asset : * _scene) {
         bool res = loadMesh(_asset);
         if (!res)
             return false;
 
-        // Update variables
-        ConstantBuffer cb;
         cb.mWorld = XMMatrixTranspose(m_World);
-        cb.mView = XMMatrixTranspose(m_View);
-        cb.mProjection = XMMatrixTranspose(m_Projection);
+
         m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb, 0, 0);
 
+        int _tw = loadTexture(_asset->m_oTexture);
+        
+        // Set shader texture resource in the pixel shader.
+        m_pImmediateContext->PSSetShaderResources(0, 1, &m_oTexMap[_tw]);
 
-        // Renders a triangle
-        m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
-        m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
-        if (_asset->m_oTexture && _asset->m_oTexture->data) {
-            loadTexture(_asset->m_oTexture);
-            m_pImmediateContext->PSSetShader(m_pPixelShaderTexture, NULL, 0);
-            // Set shader texture resource in the pixel shader.
-            m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTextureView);
-        } else {
-            m_pImmediateContext->PSSetShader(m_pPixelShaderColor, NULL, 0);
-        }
 
-        m_pImmediateContext->PSSetSamplers(0, 1, &m_pSampleState);
+        
 
         m_pImmediateContext->DrawIndexed(_asset->m_oMesh->m_iIndexCount, 0, 0);
 
         SAFE_RELEASE(m_pTextureView);
         SAFE_RELEASE(m_pIndexBuffer);
         SAFE_RELEASE(m_pVertexBuffer);
-        SAFE_RELEASE(m_pConstantBuffer);
+        //SAFE_RELEASE(m_pConstantBuffer);
     }
 
     m_pBackBufferRT->BeginDraw();

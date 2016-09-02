@@ -6,6 +6,7 @@
 #include <d3dcommon.h>
 #include <dxgi.h>
 #include <DirectXMath.h>
+#include <map>
 
 //2D for UI
 #include <D2d1.h>
@@ -90,6 +91,10 @@ private:
     IDWriteTextFormat *          m_pTextFormatM;
     IDWriteTextFormat *          m_pTextFormatL;
 
+    ConstantBuffer               m_CB;
+
+    std::map<int, ID3D11ShaderResourceView*> m_oTexMap;
+
     bool loadMesh(GameObject * _object);
-    bool loadTexture(Texture * _tex);
+    int loadTexture(Texture * _tex);
 };

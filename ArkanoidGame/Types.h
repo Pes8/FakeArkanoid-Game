@@ -99,6 +99,14 @@ struct GameConfig {
     bool forceOpenGL_Windows = DEFAULT_OPENGL_WINDOWS;
 };
 
+struct ID {
+    static int _ID;
+    int _MyID;
+    ID() {
+        ++(ID::_ID);
+        _MyID = ID::_ID;
+    }
+};
 
 struct Vector2{
     float u;
@@ -153,7 +161,7 @@ struct VertexInfo {
     Vector2 uv;
 };
 
-struct Mesh {
+struct Mesh : public ID{
     VertexInfo * m_aoVertices = nullptr;
     unsigned int m_iVertexCount = 0;
     unsigned int m_iIndexCount = 0;
@@ -164,7 +172,7 @@ struct Mesh {
     };
 };
 
-struct Texture {
+struct Texture : public ID{
     unsigned char * data = nullptr;
     int width = 0;
     int height = 0;
@@ -211,15 +219,6 @@ enum Button {
     D8_BTN,
     D9_BTN,
     NOTHING
-};
-
-struct ID {
-    static int _ID;
-    int _MyID;
-    ID() {
-        ++ID::_ID;
-        _MyID = ID::_ID;
-    }
 };
 
 template<typename  T>

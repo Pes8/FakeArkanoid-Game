@@ -218,7 +218,7 @@ void GameManager::loadRandomLevel() {
     srand(time(NULL));
     unsigned short limit = rand() % 10;
     for (unsigned short i = 0; i < 20; ++i) {
-        for (unsigned short j = 0; j < 10; ++j) {
+        for (unsigned short j = 0; j < 20; ++j) {
             bool putIt = (rand() % 10) >= limit;
             if (putIt) {
                 Vector3 pos = { GRID_BLOCK_START_X, GRID_BLOCK_START_Y, 0.0f };
