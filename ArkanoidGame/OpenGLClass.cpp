@@ -125,7 +125,7 @@ void OpenGLClass::ReSizeGLScene(unsigned int _iScreenWidth, unsigned int _iScree
     if (_iScreenHeight <= 0)
         _iScreenHeight = 1;
 
-    float aspectRatio = _iScreenWidth / _iScreenHeight;
+    float aspectRatio = static_cast<float>(_iScreenWidth) / _iScreenHeight;
 
     glViewport(0, 0, _iScreenWidth, _iScreenHeight);
     glMatrixMode(GL_PROJECTION);

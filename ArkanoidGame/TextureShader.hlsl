@@ -1,5 +1,5 @@
 
-Texture2D g_MeshTexture;            // Color texture for mesh
+Texture2D g_MeshTexture;
 SamplerState g_SampleState;
 
 SamplerState MeshTextureSampler
@@ -52,5 +52,5 @@ float4 PS_Color(VS_OUTPUT input) : SV_Target{
 // Pixel Shader - Texture
 //--------------------------------------------------------------------------------------
 float4 PS_Texture(VS_OUTPUT input) : SV_Target{
-    return g_MeshTexture.Sample(g_SampleState, input.UV)/* * input.Color*/;
+    return g_MeshTexture.Sample(g_SampleState, input.UV);
 }

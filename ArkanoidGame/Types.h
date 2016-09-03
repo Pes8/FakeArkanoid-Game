@@ -26,7 +26,7 @@
 #define DEFAULT_CAMERA_UP {0.0f, 1.0f, 0.0f}
 #define CAMERA_ORTO_WIDTH 20.5
 #define CAMERA_ORTO_HEIGHT 20.0
-#define LOCK_FPS true
+#define LOCK_FPS false
 
 #define UI_FONT_NAME L"Helvetica"
 #define UI_FONT_SIZE_S 12.0f

@@ -1,6 +1,6 @@
 #include "D3DClass.h"
 #include "WindowsGraphicsManager.h"
-
+#include "AssetsManager.h"
 
 //--------------------------------------------------------------------------------------
 // Helper for compiling shaders with D3DX11
@@ -50,73 +50,46 @@ D3DClass::D3DClass() {
     m_pBackBufferRT = nullptr;
     m_pBackBufferBrush = nullptr;
     m_pDWriteFactory = nullptr;
+    m_pTextFormatS = nullptr;
     m_pTextFormatM = nullptr;
+    m_pTextFormatL = nullptr;
 }
 
 D3DClass::~D3DClass() {
 
 }
 
-int D3DClass::loadMesh(GameObject * _object) {
-    
-    if (m_oMeshMap.find(_object->m_oMesh->_MyID) == m_oMeshMap.end()) {
-        //not found
-        MeshInfo * _meshInfo = new MeshInfo();
 
-        D3D11_BUFFER_DESC bd;
-        ZeroMemory(&bd, sizeof(bd));
-        bd.Usage = D3D11_USAGE_DYNAMIC;
-        bd.ByteWidth = sizeof(VertexInfo) * _object->m_oMesh->m_iVertexCount;
-        bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-        bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        D3D11_SUBRESOURCE_DATA InitData;
-        ZeroMemory(&InitData, sizeof(InitData));
-        InitData.pSysMem = _object->m_oMesh->m_aoVertices;
-        HRESULT result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &_meshInfo->m_pVertexBuffer);
-        if (FAILED(result))
-            return false;
-
-
-        // Create index buffer
-        bd.Usage = D3D11_USAGE_DYNAMIC;
-        bd.ByteWidth = sizeof(unsigned short) * _object->m_oMesh->m_iIndexCount;
-        bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-        bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-        ZeroMemory(&InitData, sizeof(InitData));
-        InitData.pSysMem = _object->m_oMesh->m_alIndices;
-        result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &_meshInfo->m_pIndexBuffer);
-        if (FAILED(result))
-            return false;
-
-
-        // Set primitive topology
-        m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-        m_oMeshMap[_object->m_oMesh->_MyID] = _meshInfo;
-
+GraphicsInterface * D3DClass::getInstance() {
+    if (D3DClass::instance == nullptr) {
+        D3DClass::instance = new D3DClass();
     }
-
-    //Always Update world matrix
-    m_World = XMMatrixIdentity();
-    
-    m_World *= XMMatrixScaling(_object->scale, _object->scale, _object->scale);
-    m_World *= XMMatrixTranslation(_object->m_vPosition.x, _object->m_vPosition.y, _object->m_vPosition.z);
-    m_World *= XMMatrixRotationRollPitchYaw(_object->m_vRotation.x, _object->m_vRotation.y, _object->m_vRotation.z);
-
-    return _object->m_oMesh->_MyID;
+    return D3DClass::instance;
 }
 
-int D3DClass::loadTexture(Texture * _tex) {
-    
-    if (m_oTexMap.find(_tex->_MyID) == m_oTexMap.end()) {
-        //not found
+void * D3DClass::getHandle() {
+    return m_pd3dDevice;
+}
 
+void D3DClass::setCamera(const Camera & _oCamera) {
+
+    XMVECTOR Eye = XMVectorSet(_oCamera.m_afPosition.x, _oCamera.m_afPosition.y, _oCamera.m_afPosition.z, 0.0f);
+    XMVECTOR At = XMVectorSet(_oCamera.m_afLookAt.x, _oCamera.m_afLookAt.y, _oCamera.m_afLookAt.z, 0.0f);
+    XMVECTOR Up = XMVectorSet(_oCamera.m_afUp.x, _oCamera.m_afUp.y, _oCamera.m_afUp.z, 0.0f);
+    m_View = XMMatrixLookAtLH(Eye, At, Up);
+}
+
+
+
+bool D3DClass::loadAllTextures() {
+    const std::map<int, Texture*> * _oTexturesMap = AssetsManager::getInstance()->getAllTextures();
+    for (auto _texMap : *_oTexturesMap) {
         ID3D11Texture2D * m_pTexture;
 
         // Setup the description of the texture.
         D3D11_TEXTURE2D_DESC textureDesc;
-        textureDesc.Height = _tex->height;
-        textureDesc.Width = _tex->width;
+        textureDesc.Height = _texMap.second->height;
+        textureDesc.Width = _texMap.second->width;
         textureDesc.MipLevels = 0;
         textureDesc.ArraySize = 1;
         textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -134,10 +107,10 @@ int D3DClass::loadTexture(Texture * _tex) {
         }
 
         // Set the row pitch of the targa image data.
-        unsigned int rowPitch = (_tex->width * 4) * sizeof(unsigned char);
+        unsigned int rowPitch = (_texMap.second->width * 4) * sizeof(unsigned char);
 
         // Copy the image data into the texture.
-        m_pImmediateContext->UpdateSubresource(m_pTexture, 0, NULL, _tex->data, rowPitch, 0);
+        m_pImmediateContext->UpdateSubresource(m_pTexture, 0, NULL, _texMap.second->data, rowPitch, 0);
 
 
         // Setup the shader resource view description.
@@ -158,10 +131,50 @@ int D3DClass::loadTexture(Texture * _tex) {
         // Generate mipmaps for this texture.
         m_pImmediateContext->GenerateMips(_TexView);
         SAFE_RELEASE(m_pTexture);
-        m_oTexMap[_tex->_MyID] = _TexView;
+        m_oTexMap[_texMap.second->_MyID] = _TexView;
     }
-    return _tex->_MyID;
+    return true;
 }
+
+bool D3DClass::loadAllMesh() {
+    const std::map<int, Mesh*> * _oMeshesMap = AssetsManager::getInstance()->getAllMeshes();
+    for (auto _meshMap : *_oMeshesMap) {
+        MeshInfo * _meshInfo = new MeshInfo();
+
+        D3D11_BUFFER_DESC bd;
+        ZeroMemory(&bd, sizeof(bd));
+        bd.Usage = D3D11_USAGE_DYNAMIC;
+        bd.ByteWidth = sizeof(VertexInfo) * _meshMap.second->m_iVertexCount;
+        bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        D3D11_SUBRESOURCE_DATA InitData;
+        ZeroMemory(&InitData, sizeof(InitData));
+        InitData.pSysMem = _meshMap.second->m_aoVertices;
+        HRESULT result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &_meshInfo->m_pVertexBuffer);
+        if (FAILED(result))
+            return false;
+
+
+        // Create index buffer
+        bd.Usage = D3D11_USAGE_DYNAMIC;
+        bd.ByteWidth = sizeof(unsigned short) * _meshMap.second->m_iIndexCount;
+        bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        ZeroMemory(&InitData, sizeof(InitData));
+        InitData.pSysMem = _meshMap.second->m_alIndices;
+        result = m_pd3dDevice->CreateBuffer(&bd, &InitData, &_meshInfo->m_pIndexBuffer);
+        if (FAILED(result))
+            return false;
+
+
+        // Set primitive topology
+        m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+        m_oMeshMap[_meshMap.second->_MyID] = _meshInfo;
+    }
+    return true;
+}
+
 
 bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeight, bool _bVSyncEnabled, bool _bFullscreen, float _fFar, float _fNear, void * _HWND) {
     
@@ -555,7 +568,12 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
 }
 
 bool D3DClass::run() {
-    return true;
+    bool res = true;
+
+    res &= loadAllTextures();
+    res &= loadAllMesh();
+
+    return res;
 }
 
 bool D3DClass::render(const std::vector<GameObject*> * _scene, const std::vector<UIText*> * _ui) {
@@ -566,32 +584,37 @@ bool D3DClass::render(const std::vector<GameObject*> * _scene, const std::vector
     m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0, 0);
    
     // Update variables
-    ConstantBuffer cb;
-    cb.mView = XMMatrixTranspose(m_View);
-    cb.mProjection = XMMatrixTranspose(m_Projection);
+    m_CB.mView = XMMatrixTranspose(m_View);
+    m_CB.mProjection = XMMatrixTranspose(m_Projection);
     
     for (GameObject * _asset : * _scene) {
-        int _mh = loadMesh(_asset);
 
-        MeshInfo * _meshInfo = m_oMeshMap[_mh];
+        //Always Update world matrix
+        m_World = XMMatrixIdentity();
+
+        m_World *= XMMatrixScaling(_asset->scale, _asset->scale, _asset->scale);
+        m_World *= XMMatrixTranslation(_asset->m_vPosition.x, _asset->m_vPosition.y, _asset->m_vPosition.z);
+        m_World *= XMMatrixRotationRollPitchYaw(_asset->m_vRotation.x, _asset->m_vRotation.y, _asset->m_vRotation.z);
+
+        m_CB.mWorld = XMMatrixTranspose(m_World);
+
+        m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &m_CB, 0, 0);
+
+        MeshInfo * _meshInfo = m_oMeshMap[_asset->m_oMesh->_MyID];
 
         // Set vertex buffer
         UINT stride = sizeof(VertexInfo);
         UINT offset = 0;
         m_pImmediateContext->IASetVertexBuffers(0, 1, &_meshInfo->m_pVertexBuffer, &stride, &offset);
+        
         // Set index buffer
         m_pImmediateContext->IASetIndexBuffer(_meshInfo->m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
-
-        cb.mWorld = XMMatrixTranspose(m_World);
-
-        m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, NULL, &cb, 0, 0);
-
-        int _tw = loadTexture(_asset->m_oTexture);
         
         // Set shader texture resource in the pixel shader.
-        m_pImmediateContext->PSSetShaderResources(0, 1, &m_oTexMap[_tw]);
+        m_pImmediateContext->PSSetShaderResources(0, 1, &m_oTexMap[_asset->m_oTexture->_MyID]);
         
+        //Draw the object
         m_pImmediateContext->DrawIndexed(_asset->m_oMesh->m_iIndexCount, 0, 0);
 
     }
@@ -662,23 +685,4 @@ bool D3DClass::shutdown() {
     SAFE_RELEASE(m_pTextFormatL);
 
     return true;
-}
-
-GraphicsInterface * D3DClass::getInstance() {
-    if (D3DClass::instance == nullptr) {
-        D3DClass::instance = new D3DClass();
-    }
-    return D3DClass::instance;
-}
-
-void * D3DClass::getHandle() {
-    return m_pd3dDevice;
-}
-
-void D3DClass::setCamera(const Camera & _oCamera) {
-    
-    XMVECTOR Eye = XMVectorSet(_oCamera.m_afPosition.x, _oCamera.m_afPosition.y, _oCamera.m_afPosition.z, 0.0f);
-    XMVECTOR At = XMVectorSet(_oCamera.m_afLookAt.x, _oCamera.m_afLookAt.y, _oCamera.m_afLookAt.z, 0.0f);
-    XMVECTOR Up = XMVectorSet(_oCamera.m_afUp.x, _oCamera.m_afUp.y, _oCamera.m_afUp.z, 0.0f);
-    m_View = XMMatrixLookAtLH(Eye, At, Up);
 }

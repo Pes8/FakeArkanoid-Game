@@ -99,6 +99,7 @@ private:
     std::map<int, ID3D11ShaderResourceView*> m_oTexMap;
     std::map<int, MeshInfo *> m_oMeshMap;
 
-    int loadMesh(GameObject * _object);
-    int loadTexture(Texture * _tex);
+    bool loadAllTextures();
+    bool loadAllMesh();
+
 };

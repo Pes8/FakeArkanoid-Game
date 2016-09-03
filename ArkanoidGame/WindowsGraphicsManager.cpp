@@ -101,8 +101,8 @@ bool WindowsGraphicsManager::initialization(){
 
 bool WindowsGraphicsManager::run() {
     showWindow();
-
-    return true;
+    
+    return m_o3DClass->run();
 }
 
 

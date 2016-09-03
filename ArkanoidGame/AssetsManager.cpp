@@ -269,6 +269,14 @@ Texture * AssetsManager::getTexture(int id) const{
     return m_oTexMap.at(id);
 }
 
+const std::map<int, Texture*>* const AssetsManager::getAllTextures() const {
+    return &m_oTexMap;
+}
+
+const std::map<int, Mesh*>* const AssetsManager::getAllMeshes() const {
+    return &m_oMeshMap;
+}
+
 AssetsManager::~AssetsManager() {
 
     CLEAR_KEY_POINTER_MAP(m_oMeshMap);

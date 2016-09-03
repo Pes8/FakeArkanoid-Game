@@ -51,7 +51,7 @@ void GameManager::startCheckFPS() {
 
 void GameManager::checkFPS() {
     auto endTime = std::chrono::high_resolution_clock::now();
-    unsigned int frameTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - m_oCurrentFrameStartTime).count();
+   unsigned int frameTime = std::chrono::duration_cast<std::chrono::microseconds>(endTime - m_oCurrentFrameStartTime).count();
 
 #if UI_SHOW_FPS
     //static char buffer[33];
@@ -220,6 +220,7 @@ void GameManager::loadRandomLevel() {
     for (unsigned short i = 0; i < 20; ++i) {
         for (unsigned short j = 0; j < 20; ++j) {
             bool putIt = (rand() % 10) >= limit;
+            putIt = true;
             if (putIt) {
                 Vector3 pos = { GRID_BLOCK_START_X, GRID_BLOCK_START_Y, 0.0f };
                 pos.x += i * GRID_BLOCK_SIZE_X;
@@ -232,6 +233,7 @@ void GameManager::loadRandomLevel() {
             }
         }
     }
+
 }
 
 GameManager::GameManager(){

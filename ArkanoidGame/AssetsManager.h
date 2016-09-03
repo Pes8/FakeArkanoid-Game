@@ -34,6 +34,8 @@ public:
     Wall * createHorizontalWall();
 
     Texture * getTexture(int id) const;
+    const std::map<int, Texture*> * const getAllTextures() const;
+    const std::map<int, Mesh*> * const getAllMeshes() const;
 
     ~AssetsManager();
 };

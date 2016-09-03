@@ -34,7 +34,9 @@ int main() {
 
 #ifdef WINDOWS
     SystemFactory * systemFactory = new WindowsSystemFactory();
-#endif // WINDOWS
+#elif UNIX
+    //TODO Unix Version
+#endif
 
     GameManager * gameManager = GameManager::getInstance();
     InputManager * inputManager = systemFactory->getInputManager();
@@ -54,15 +56,13 @@ int main() {
 
     bool not3DError = true;
 
-    
-
-
     physicsManager->initialization(gameManager->getPlayerInCurrentLevel(), gameManager->getBallInCurrentLevel());
 
 
     graphicsManager->setScene(gameManager->getCurrentLevelScene());
     graphicsManager->setUI(gameManager->getCurrentUI());
     graphicsManager->setup(gameManager->getGameConfiguration());
+
     not3DError = graphicsManager->initialization();
     if(not3DError)
         not3DError = graphicsManager->run();
