@@ -47,8 +47,9 @@ private:
     void OnBlockDestroyed(int id);
     void OnPlayerDeath();
     void OnLoadLevel(int _level = 0);
-    
     void OnQuitBtn();
+    bool readConfigFromFile();
+
 
     std::vector<UIText*> m_oCurrentUI;
     std::chrono::high_resolution_clock::time_point m_oCurrentFrameStartTime;

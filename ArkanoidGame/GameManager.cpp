@@ -100,18 +100,20 @@ GameManager::~GameManager() {
 
 GameManager::GameManager() {
     config = new GameConfig();
+    readConfigFromFile();
+
     m_oCurrentLevel = new Level();
 
 #if UI_SHOW_FPS // UI_SHOW_FPS
     m_oUIFPSText = new UIText(L"30", 2, { 0.0f, 0.0f }, TextType::SMALL);
     m_oCurrentUI.push_back(m_oUIFPSText);
 #endif // UI_SHOW_FPS
-    m_oUILivesText = new UIText(_itoa(PLAYER_LIVES, buffer, 10), 1, { 100.0f, 670.0f });
+    m_oUILivesText = new UIText(_itoa(PLAYER_LIVES, buffer, 10), 1, { 100.0f, 570.0f });
 
-    m_oCurrentUI.push_back(new UIText(L"Press 'N' to randomize blocks", 30, { 50.0f, 600.0f }, TextType::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Press '0' to '9' to load a level", 33, { 50.0f, 615.0f }, TextType::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Press 'ESC' to Exit", 20, { 50.0f, 630.0f }, TextType::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Lives: ", 8, { 50.0f, 670.0f }));
+    m_oCurrentUI.push_back(new UIText(L"Press 'N' to randomize blocks", 30, { 50.0f, 500.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Press '0' to '9' to load a level", 33, { 50.0f, 515.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Press 'ESC' to Exit", 20, { 50.0f, 530.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Lives: ", 8, { 50.0f, 570.0f }));
     m_oCurrentUI.push_back(m_oUILivesText);
 
     m_eState = GameState::PLAYING;
@@ -121,7 +123,7 @@ void GameManager::resetGame() {
     //Original Player Position + restore lives
     m_oCurrentLevel->m_oPlayer->m_vPosition = PLAYER_START_POS;
     m_oCurrentLevel->m_oPlayer->m_vVelocity = {0.0f, 0.0f, 0.0f};
-    m_oCurrentLevel->m_oPlayer->m_iLives = PLAYER_LIVES;
+    m_oCurrentLevel->m_oPlayer->m_iLives = config->startLife;
     m_oUILivesText->setText(_itoa(m_oCurrentLevel->m_oPlayer->m_iLives, buffer, 10));
 
     //RESET BALL Position & Velocity
@@ -146,6 +148,8 @@ void GameManager::prepareLevel() {
 
     //Walls, a player and a ball always exists
     Character * player = assetsManager->createPlayer();
+    player->m_iLives = config->startLife;
+
     Ball * ball = assetsManager->createBall();
 
     Wall * wsx = assetsManager->createVerticalWall();
@@ -262,6 +266,35 @@ void GameManager::OnQuitBtn() {
     m_eState = GameState::EXIT;
 }
 
+bool GameManager::readConfigFromFile() {
+    std::ifstream infile(LOCAL_PATH CONFIG_FILE);
+    if (!infile.is_open()) return false;
+
+    std::string line;
+
+    while (std::getline(infile, line)) {
+        std::istringstream iss(line);
+
+        std::string code;
+        iss >> code;
+
+        if (code == "SW") {
+            iss >> config->screenWidth;
+        } else if (code == "SH") {
+            iss >> config->screenHeight;
+        } else if (code == "SL") {
+            iss >> config->startLife;
+        } else if (code == "FS") {
+            iss >> config->fullscreen;
+        } else if (code == "VS") {
+            iss >> config->vsyncEnabled;
+        }
+
+    }
+
+    return true;
+}
+
 void GameManager::OnBallExit() {
     //RESET BALL Position & Velocity and update UI
     m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
@@ -286,7 +319,7 @@ void GameManager::OnBlockDestroyed(int id) {
         m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
         m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, 0.0f, 0.0f };
 
-        m_oCurrentUI.push_back(new UIText(L"YOU WIN!", 9, { 500.0f, 350.0f }, TextType::LARGE));
+        m_oCurrentUI.push_back(new UIText(L"YOU WIN!", 9, { 500.0f, 300.0f }, TextType::LARGE));
     }
 }
 
@@ -295,7 +328,7 @@ void GameManager::OnPlayerDeath() {
     m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
     m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, 0.0f, 0.0f };
     
-    m_oCurrentUI.push_back(new UIText(L"GAME OVER!", 11, { 500.0f, 350.0f }, TextType::LARGE));
+    m_oCurrentUI.push_back(new UIText(L"GAME OVER!", 11, { 500.0f, 300.0f }, TextType::LARGE));
 }
 
 void GameManager::OnLoadLevel(int _level) {

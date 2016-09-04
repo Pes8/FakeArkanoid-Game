@@ -73,6 +73,8 @@
 #define MESH_PATH LOCAL_PATH "Meshes/"
 #define LEVEL_PATH LOCAL_PATH "Levels/"
 
+#define CONFIG_FILE "config"
+
 /*CUSTOM TYPES */
 typedef uint32_t ButtonsStatus;
 typedef void(*FP)();
@@ -88,7 +90,6 @@ enum class GameState : char {
 };
 
 
-// ... one day I can take the configurations from a file...
 struct GameConfig {
     unsigned int screenWidth = DEFAULT_WIDTH;
     unsigned int screenHeight = DEFAULT_HEIGHT;
