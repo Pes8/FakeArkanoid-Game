@@ -3,10 +3,12 @@
 #include "GameObject.h"
 
 struct Block : public GameObject{
-    int hitBeforeDestroy;
+    
     Block();
     virtual ~Block();
     virtual void hit();
+
     Event<int> m_eBlockDestroyed;
+    unsigned short hitBeforeDestroy;
     bool m_bCracked;
 };

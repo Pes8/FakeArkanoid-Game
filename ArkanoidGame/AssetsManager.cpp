@@ -5,7 +5,53 @@
 
 AssetsManager * AssetsManager::instance = nullptr;
 
-Mesh * AssetsManager::createAABBMesh(float _sizeX, float _sizeY, float _sizeZ, float startTexU, float endTexU, float startTexV, float endTexV, float texOffsetU, float texOffsetV) {
+Mesh * AssetsManager::createQuad(float _sizeX, float _sizeY, float startTexU, float endTexU, float startTexV, float endTexV, float texOffsetU, float texOffsetV) {
+    
+    Mesh * _oMesh = new Mesh();
+    _oMesh->m_iVertexCount = 4;
+    _oMesh->m_iIndexCount = 6;
+
+    _oMesh->m_aoVertices = new VertexInfo[_oMesh->m_iVertexCount];
+    _oMesh->m_aoVertices[0] = { - _sizeX, - _sizeY, 0,  0.0f,0.0f,0.0f,0.0f, startTexU + texOffsetU, endTexV + texOffsetV };
+    _oMesh->m_aoVertices[1] = { - _sizeX,   _sizeY, 0,  0.0f,0.0f,0.0f,0.0f, startTexU + texOffsetU, startTexV + texOffsetV };
+    _oMesh->m_aoVertices[2] = {   _sizeX,   _sizeY, 0,  0.0f,0.0f,0.0f,0.0f, endTexU + texOffsetU, startTexV + texOffsetV };
+    _oMesh->m_aoVertices[3] = {   _sizeX, - _sizeY, 0,  0.0f,0.0f,0.0f,0.0f, endTexU + texOffsetU, endTexV + texOffsetV };
+
+    _oMesh->m_alIndices = new unsigned short[_oMesh->m_iIndexCount]{
+        0,1,3,
+        3,1,2
+    };
+
+    return _oMesh;
+}
+
+Mesh * AssetsManager::createCircle(float _r, int _resolution) {
+    
+    Mesh * _oMesh = new Mesh();
+    _oMesh->m_iVertexCount = _resolution + 2;
+    _oMesh->m_aoVertices = new VertexInfo[_oMesh->m_iVertexCount];
+
+    _oMesh->m_iIndexCount = 3 * _resolution;
+    _oMesh->m_alIndices = new unsigned short[_oMesh->m_iIndexCount];
+
+    _oMesh->m_aoVertices[0] = { 0, 0, 0.0f , 0.0f,0.0f,0.0f,0.0f, 0.0f, 0.0f };
+
+    for (int i = 0; i < _resolution+1; ++i) {
+        float x = - _r * cos(PI*(i / (_resolution / 2.0f)));
+        float y = _r * sin(PI*(i / (_resolution / 2.0f)));
+        _oMesh->m_aoVertices[i+1] = { x, y, 0.0f , 0.0f,0.0f,0.0f,0.0f, (x + 1.0f) / 2, (y + 1.0f) / 2 };
+    }
+
+    for (int j=0,k=0; j < _resolution; ++j, k+=3) {
+        _oMesh->m_alIndices[k] = 0;
+        _oMesh->m_alIndices[k+1] = j+1;
+        _oMesh->m_alIndices[k+2] = j+2;
+    }
+
+    return _oMesh;
+}
+
+Mesh * AssetsManager::create3DAABBMesh(float _sizeX, float _sizeY, float _sizeZ, float startTexU, float endTexU, float startTexV, float endTexV, float texOffsetU, float texOffsetV) {
     
     Mesh * _oMesh = new Mesh();
 
@@ -27,7 +73,7 @@ Mesh * AssetsManager::createAABBMesh(float _sizeX, float _sizeY, float _sizeZ, f
         3,1,0,
         2,1,3,
 
-        0,5,4,
+        0,5,4, // Davanti
         1,5,0,
 
         3,4,7,
@@ -162,28 +208,54 @@ void AssetsManager::preloadAllAssets() {
 
 
     /** MESHES **/
+#if OBJECTS_3D
+    
+    m_oMeshMap[BLOCK_INDEX + 0] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.0f);                    // Red - Normal
+    m_oMeshMap[BLOCK_INDEX + 1] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.0f);                   // Yellow - Normal
+    m_oMeshMap[BLOCK_INDEX + 2] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.0f);                    // Cyan - Normal
+    m_oMeshMap[BLOCK_INDEX + 3] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.0f);                   // Purple - Normal
+    m_oMeshMap[BLOCK_INDEX + 4] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.25f);                   // Orange - Normal
+    m_oMeshMap[BLOCK_INDEX + 5] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.25f);                  // Green - Normal
+    m_oMeshMap[BLOCK_INDEX + 6] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.25f);                   // Blue - Normal
+    m_oMeshMap[BLOCK_INDEX + 7] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.25f);                  // White - Normal
+    m_oMeshMap[BLOCK_INDEX + 8] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.5f);                    // Gold1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 9] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.75f);                   // Gold2 - Hard
+    m_oMeshMap[BLOCK_INDEX + 10] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.5f);                  // Double Gray1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 11] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.75f);                 // Double Gray2 - Hard
+    m_oMeshMap[BLOCK_INDEX + 12] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.5f);                   // Gray1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 13] = create3DAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.75f);                  // Gray2 - Hard
 
-    m_oMeshMap[BLOCK_INDEX + 0] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.0f);                    // Red - Normal
-    m_oMeshMap[BLOCK_INDEX + 1] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.0f);                   // Yellow - Normal
-    m_oMeshMap[BLOCK_INDEX + 2] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.0f);                    // Cyan - Normal
-    m_oMeshMap[BLOCK_INDEX + 3] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.0f);                   // Purple - Normal
-    m_oMeshMap[BLOCK_INDEX + 4] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.25f);                   // Orange - Normal
-    m_oMeshMap[BLOCK_INDEX + 5] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.25f);                  // Green - Normal
-    m_oMeshMap[BLOCK_INDEX + 6] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.25f);                   // Blue - Normal
-    m_oMeshMap[BLOCK_INDEX + 7] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.25f);                  // White - Normal
-    m_oMeshMap[BLOCK_INDEX + 8] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.5f);                    // Gold1 - Hard
-    m_oMeshMap[BLOCK_INDEX + 9] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.75f);                   // Gold2 - Hard
-    m_oMeshMap[BLOCK_INDEX + 10] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.5f);                  // Double Gray1 - Hard
-    m_oMeshMap[BLOCK_INDEX + 11] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.75f);                 // Double Gray2 - Hard
-    m_oMeshMap[BLOCK_INDEX + 12] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.5f);                   // Gray1 - Hard
-    m_oMeshMap[BLOCK_INDEX + 13] = createAABBMesh(BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Z, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.75f);                  // Gray2 - Hard
+    m_oMeshMap[WALLS_INDEX + 0] = create3DAABBMesh(WALL_THICKNESS_X, CAMERA_ORTO_HEIGHT/2, WALL_THICKNESS_Z, 0.0f, 1.0f, 0.0f, 20.0f);                 // Wall - vertical
+    m_oMeshMap[WALLS_INDEX + 1] = create3DAABBMesh(CAMERA_ORTO_WIDTH /2, WALL_THICKNESS_Y, WALL_THICKNESS_Z, 0.0f, 20.0f, 0.0f, 1.0f);                 // Wall - horizontal
 
-    m_oMeshMap[WALLS_INDEX + 0] = createAABBMesh(WALL_THICKNESS_X, CAMERA_ORTO_HEIGHT/2, WALL_THICKNESS_Z, 0.0f, 1.0f, 0.0f, 20.0f);                 // Wall - vertical
-    m_oMeshMap[WALLS_INDEX + 1] = createAABBMesh(CAMERA_ORTO_WIDTH /2, WALL_THICKNESS_Y, WALL_THICKNESS_Z, 0.0f, 20.0f, 0.0f, 1.0f);                 // Wall - horizontal
-
-    m_oMeshMap[PLAYER_INDEX] = createAABBMesh(PLAYER_SIZE_X, PLAYER_SIZE_Y, PLAYER_SIZE_Z, 0.0f, 1.0f, 0.0f, 1.0f);                                     // Player
+    m_oMeshMap[PLAYER_INDEX] = create3DAABBMesh(PLAYER_SIZE_X, PLAYER_SIZE_Y, 0.0f, 1.0f, 0.0f, 1.0f);                                     // Player
 
     m_oMeshMap[BALL_INDEX] = importMeshFromObj(MESH_PATH "test-Sphere.obj"); // Ball
+#else
+    m_oMeshMap[BLOCK_INDEX + 0] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.0f);                    // Red - Normal
+    m_oMeshMap[BLOCK_INDEX + 1] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.0f);                   // Yellow - Normal
+    m_oMeshMap[BLOCK_INDEX + 2] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.0f);                    // Cyan - Normal
+    m_oMeshMap[BLOCK_INDEX + 3] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.0f);                   // Purple - Normal
+    m_oMeshMap[BLOCK_INDEX + 4] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.25f);                   // Orange - Normal
+    m_oMeshMap[BLOCK_INDEX + 5] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.25f);                  // Green - Normal
+    m_oMeshMap[BLOCK_INDEX + 6] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.25f);                   // Blue - Normal
+    m_oMeshMap[BLOCK_INDEX + 7] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.75f, 0.25f);                  // White - Normal
+    m_oMeshMap[BLOCK_INDEX + 8] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.5f);                    // Gold1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 9] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.75f);                   // Gold2 - Hard
+    m_oMeshMap[BLOCK_INDEX + 10] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.5f);                  // Double Gray1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 11] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.75f);                 // Double Gray2 - Hard
+    m_oMeshMap[BLOCK_INDEX + 12] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.5f);                   // Gray1 - Hard
+    m_oMeshMap[BLOCK_INDEX + 13] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.5f, 0.75f);                  // Gray2 - Hard
+
+    m_oMeshMap[WALLS_INDEX + 0] = createQuad(WALL_THICKNESS_X, CAMERA_ORTO_HEIGHT / 2, 0.0f, 1.0f, 0.0f, 20.0f);                 // Wall - vertical
+    m_oMeshMap[WALLS_INDEX + 1] = createQuad(CAMERA_ORTO_WIDTH / 2, WALL_THICKNESS_Y, 0.0f, 20.0f, 0.0f, 1.0f);                 // Wall - horizontal
+
+    m_oMeshMap[PLAYER_INDEX] = createQuad(PLAYER_SIZE_X, PLAYER_SIZE_Y, 0.0f, 1.0f, 0.0f, 1.0f);                                     // Player
+
+    m_oMeshMap[BALL_INDEX] = createCircle(1.0f, 64);
+#endif
+
+    
 
 }
 

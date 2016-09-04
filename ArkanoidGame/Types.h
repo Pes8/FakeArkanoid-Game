@@ -26,14 +26,14 @@
 #define DEFAULT_CAMERA_UP {0.0f, 1.0f, 0.0f}
 #define CAMERA_ORTO_WIDTH 20.5
 #define CAMERA_ORTO_HEIGHT 20.0
-#define LOCK_FPS false
+#define LOCK_FPS true
 
 #define UI_FONT_NAME L"Helvetica"
 #define UI_FONT_SIZE_S 12.0f
 #define UI_FONT_SIZE_M 18.0f
 #define UI_FONT_SIZE_L 30.0f
 #define UI_SHOW_FPS true
-
+#define OBJECTS_3D false
 
 #define PLAYER_VELOCITY 0.35f // Horizontal movement
 #define PLAYER_START_POS { 0, - (CAMERA_ORTO_HEIGHT/2 - 1.5f), 0.0f }
@@ -82,8 +82,13 @@ using callback = std::function<void(T)>;
 
 using callback_NP = std::function<void()>; // callback with NO Parameters ... I didn't found any other better solution than using two alias
 
+enum class GameState : char {
+    PLAYING,
+    EXIT
+};
 
-// struct ... one day I can take the configurations from a file...
+
+// ... one day I can take the configurations from a file...
 struct GameConfig {
     unsigned int screenWidth = DEFAULT_WIDTH;
     unsigned int screenHeight = DEFAULT_HEIGHT;
@@ -187,8 +192,8 @@ struct Texture : public ID {
 
 struct Collider {
     Vector3 sizes;
-    enum { SPHERE, AABB } type;
     float radius;
+    enum : char { SPHERE, AABB } type;
     bool active = false;
 };
 
@@ -201,7 +206,7 @@ struct Camera {
     float m_fNear;
 };
 
-enum Button {
+enum Button : char {
     QUIT_BTN,
     PAUSE_BTN,
     ENTER_BTN,

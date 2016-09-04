@@ -5,9 +5,9 @@ Wall::Wall() {
 }
 
 Wall::~Wall() {
-
+    SAFE_DELETE(collider);
 }
 
 void Wall::hit() {
-    //do nothign
+    //do nothing
 }

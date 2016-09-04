@@ -11,7 +11,7 @@ Block::Block() {
 
 
 Block::~Block() {
-
+    SAFE_DELETE(collider);
 }
 
 void Block::hit() {

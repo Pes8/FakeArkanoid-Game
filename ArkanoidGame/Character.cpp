@@ -12,7 +12,7 @@ Character::Character() {
 }
 
 Character::~Character() {
-
+    SAFE_DELETE(collider);
 }
 
 void Character::CharGoLeft() {
@@ -30,7 +30,6 @@ void Character::LostLife() {
 
     if (m_iLives <= 0) {
         m_ePlayerDeath.fire();
-        //m_ePlayerDeath.subscriptions.clear();
     }
 }
 

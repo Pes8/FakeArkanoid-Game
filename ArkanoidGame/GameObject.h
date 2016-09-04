@@ -5,6 +5,11 @@
 
 struct GameObject : public ID{
     
+    GameObject();
+    virtual ~GameObject();
+    virtual void hit() = 0;
+
+
     Texture * m_oTexture;
     Mesh * m_oMesh;
     Collider * collider ;
@@ -12,8 +17,6 @@ struct GameObject : public ID{
     Vector3 m_vPosition;
     Vector3 m_vRotation;
     Vector3 m_vVelocity;
+
     float scale;
-    virtual void hit() = 0;
-    GameObject();
-    virtual ~GameObject();
 };

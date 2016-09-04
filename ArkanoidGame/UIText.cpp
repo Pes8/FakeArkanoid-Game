@@ -1,6 +1,6 @@
 #include "UIText.h"
 
-UIText::UIText(wchar_t * _text, int _size, Vector2 _pos, type _type) {
+UIText::UIText(wchar_t * _text, int _size, Vector2 _pos, TextType _type) {
 
     m_vStartRectPosition = _pos;
     m_vEndRectPosition.u = _pos.u + 12 * _size + _type;
@@ -12,7 +12,7 @@ UIText::UIText(wchar_t * _text, int _size, Vector2 _pos, type _type) {
     memcpy(m_pText, _text, _size * sizeof(wchar_t));
 }
 
-UIText::UIText(char * _text, int _size, Vector2 _pos, type _type) {
+UIText::UIText(char * _text, int _size, Vector2 _pos, TextType _type) {
     m_iSize = _size;
     m_pText = new wchar_t[m_iSize];
     mbstowcs(m_pText, _text, m_iSize);

@@ -3,7 +3,7 @@
 #include "InputManager.h"
 #include <Windows.h>
 
-enum ButtonKey {
+enum ButtonKey : char {
     QUIT_KEY = VK_ESCAPE,
     PAUSE_KEY = 0x50,
     ENTER_KEY = VK_RETURN,
@@ -22,7 +22,7 @@ enum ButtonKey {
     D7_KEY = 0x37,
     D8_KEY = 0x38,
     D9_KEY = 0x39,
-    NOTHING_KEY = -666
+    NOTHING_KEY = -66
 };
 
 class WindowsInputManager : public InputManager {
@@ -31,11 +31,13 @@ public:
     virtual Button getButtonPressed();
     virtual ButtonsStatus getButtonsPressed();
     static InputManager * getInstance();
-    virtual ~WindowsInputManager();
+    virtual ~WindowsInputManager() {
+        instance = nullptr;
+    }
 protected:
 
     // MAP Button -> Key Val
-    int Buttons[IM__BUTTONS_NUMBER] = {
+    char Buttons[IM__BUTTONS_NUMBER] = {
         QUIT_KEY,
         PAUSE_KEY,
         ENTER_KEY,

@@ -57,15 +57,19 @@ void FakePhysicsManager::initialization(const GameObject * _player, const GameOb
 }
 
 
-bool FakePhysicsManager::checkCollision(const GameObject & a, const GameObject & b) {
+bool FakePhysicsManager::checkCollision(const GameObject & a, const GameObject & b) const{
     //check the X axis
     bool x = (std::abs(a.m_vPosition.x - b.m_vPosition.x) <= a.collider->sizes.x + b.collider->sizes.x);
 
     //check the Y axis
     bool y = (std::abs(a.m_vPosition.y - b.m_vPosition.y) <= a.collider->sizes.y + b.collider->sizes.y);
 
+#if OBJECTS_3D
     //check the Z axis
     bool z = (std::abs(a.m_vPosition.z - b.m_vPosition.z) <= a.collider->sizes.z + b.collider->sizes.z);
+#else
+    bool z = true;
+#endif
 
     return x && y && z;
 }
@@ -82,7 +86,7 @@ void FakePhysicsManager::moveObjects() {
     player->m_vVelocity *= 0; // No inertia in my game please!
 }
 
-bool FakePhysicsManager::isInside(const GameObject & _obj) {
+bool FakePhysicsManager::isInside(const GameObject & _obj) const{
     bool x = _obj.m_vPosition.x < CAMERA_ORTO_WIDTH / 2 && _obj.m_vPosition.x > -CAMERA_ORTO_WIDTH / 2;
     bool y = _obj.m_vPosition.y < CAMERA_ORTO_HEIGHT / 2 && _obj.m_vPosition.y > - CAMERA_ORTO_HEIGHT / 2;
 

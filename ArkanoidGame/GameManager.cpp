@@ -7,7 +7,7 @@
 
 char GameManager::buffer[33] = {0};
 
-bool GameManager::quit = false;
+
 GameManager * GameManager::instance = nullptr;
 
 GameManager * GameManager::getInstance(){
@@ -32,9 +32,9 @@ void GameManager::initialization(SystemFactory * _systemFactory){
     Subscription_D09_BTN[9] = OnButtonPressed[D9_BTN].subscribe(std::bind(&GameManager::OnLoadLevel, this, 9));
     
     m_oSystemHelper = _systemFactory->getOSHelper(); // singleton, return only pointer
+    
     prepareLevel();
-
-    readLevel(1);
+    readLevel(0);
 }
 
 void GameManager::processEvent(Button pressedButton){
@@ -86,12 +86,35 @@ const GameObject * GameManager::getBallInCurrentLevel() const {
     return m_oCurrentLevel->m_oBall;
 }
 
+GameState GameManager::getGameState() const {
+    return m_eState;
+}
+
 GameManager::~GameManager() {
     OnButtonPressed[LEFT_BTN].unsubscribe(P_Subscription_LEFT_BTN); //TODO check if is ok
     OnButtonPressed[RIGHT_BTN].unsubscribe(P_Subscription_RIGHT_BTN); //TODO check if is ok
     OnButtonPressed[QUIT_BTN].unsubscribe(Subscription_QUIT_BTN);
     CLEAR_POINTER_CONTAINER(m_oCurrentUI);
     delete m_oCurrentLevel;
+}
+
+GameManager::GameManager() {
+    config = new GameConfig();
+    m_oCurrentLevel = new Level();
+
+#if UI_SHOW_FPS // UI_SHOW_FPS
+    m_oUIFPSText = new UIText(L"30", 2, { 0.0f, 0.0f }, TextType::SMALL);
+    m_oCurrentUI.push_back(m_oUIFPSText);
+#endif // UI_SHOW_FPS
+    m_oUILivesText = new UIText(_itoa(PLAYER_LIVES, buffer, 10), 1, { 100.0f, 670.0f });
+
+    m_oCurrentUI.push_back(new UIText(L"Press 'N' to randomize blocks", 30, { 50.0f, 600.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Press '0' to '9' to load a level", 33, { 50.0f, 615.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Press 'ESC' to Exit", 20, { 50.0f, 630.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Lives: ", 8, { 50.0f, 670.0f }));
+    m_oCurrentUI.push_back(m_oUILivesText);
+
+    m_eState = GameState::PLAYING;
 }
 
 void GameManager::resetGame() {
@@ -220,7 +243,6 @@ void GameManager::loadRandomLevel() {
     for (unsigned short i = 0; i < 20; ++i) {
         for (unsigned short j = 0; j < 20; ++j) {
             bool putIt = (rand() % 10) >= limit;
-            putIt = true;
             if (putIt) {
                 Vector3 pos = { GRID_BLOCK_START_X, GRID_BLOCK_START_Y, 0.0f };
                 pos.x += i * GRID_BLOCK_SIZE_X;
@@ -236,25 +258,8 @@ void GameManager::loadRandomLevel() {
 
 }
 
-GameManager::GameManager(){
-    config = new GameConfig();
-    m_oCurrentLevel = new Level();
-    
-#if UI_SHOW_FPS // UI_SHOW_FPS
-    m_oUIFPSText = new UIText(L"30", 2, {0.0f, 0.0f }, UIText::SMALL);
-    m_oCurrentUI.push_back(m_oUIFPSText);
-#endif // UI_SHOW_FPS
-    m_oUILivesText = new UIText(_itoa(PLAYER_LIVES, buffer, 10), 1, { 100.0f, 670.0f });
-
-    m_oCurrentUI.push_back(new UIText(L"Press 'N' to randomize blocks", 30, {50.0f, 600.0f}, UIText::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Press '0' to '9' to load a level", 33, { 50.0f, 615.0f }, UIText::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Press 'ESC' to Exit", 20, { 50.0f, 630.0f }, UIText::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Lives: ", 8, { 50.0f, 670.0f }));
-    m_oCurrentUI.push_back(m_oUILivesText);
-}
-
-void GameManager::OnQuitBtn(){
-    GameManager::quit = true;
+void GameManager::OnQuitBtn() {
+    m_eState = GameState::EXIT;
 }
 
 void GameManager::OnBallExit() {
@@ -270,7 +275,6 @@ void GameManager::OnBlockDestroyed(int id) {
         if ((*it)->_MyID == id) {
             //delete *it; // Can't delete now, because event need to propagate. Block will suicide
             m_oCurrentLevel->m_oObjectsList.erase(it);
-
             break;
         }
     }
@@ -282,7 +286,7 @@ void GameManager::OnBlockDestroyed(int id) {
         m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
         m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, 0.0f, 0.0f };
 
-        m_oCurrentUI.push_back(new UIText(L"YOU WIN!", 9, { 500.0f, 350.0f }, UIText::LARGE));
+        m_oCurrentUI.push_back(new UIText(L"YOU WIN!", 9, { 500.0f, 350.0f }, TextType::LARGE));
     }
 }
 
@@ -291,7 +295,7 @@ void GameManager::OnPlayerDeath() {
     m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
     m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, 0.0f, 0.0f };
     
-    m_oCurrentUI.push_back(new UIText(L"GAME OVER!", 11, { 500.0f, 350.0f }, UIText::LARGE));
+    m_oCurrentUI.push_back(new UIText(L"GAME OVER!", 11, { 500.0f, 350.0f }, TextType::LARGE));
 }
 
 void GameManager::OnLoadLevel(int _level) {

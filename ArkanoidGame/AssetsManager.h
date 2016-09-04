@@ -20,8 +20,9 @@ private:
     static AssetsManager * instance;
     std::map<int, Mesh*> m_oMeshMap;
     std::map<int, Texture*> m_oTexMap;
-
-    Mesh * createAABBMesh(float _sizeX = 0.5f, float _sizeY = 0.25f, float _sizeZ = 0.5f, float startTexU = 0.0f, float endTexU = 0.25f, float startTexV = 0.0f, float endTexV = 0.25f, float texOffsetU = 0.0f, float texOffsetV = 0.0f);
+    Mesh * createQuad(float _sizeX = 0.5f, float _sizeY = 0.25, float startTexU = 0.0f, float endTexU = 0.25f, float startTexV = 0.0f, float endTexV = 0.25f, float texOffsetU = 0.0f, float texOffsetV = 0.0f);
+    Mesh * createCircle(float _r, int _resolution = 64);
+    Mesh * create3DAABBMesh(float _sizeX = 0.5f, float _sizeY = 0.25f, float _sizeZ = 0.5f, float startTexU = 0.0f, float endTexU = 0.25f, float startTexV = 0.0f, float endTexV = 0.25f, float texOffsetU = 0.0f, float texOffsetV = 0.0f);
     Mesh * importMeshFromObj(std::string _filename);
 public:
     static AssetsManager * getInstance();

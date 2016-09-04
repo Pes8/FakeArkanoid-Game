@@ -30,6 +30,7 @@ HRESULT CompileShaderFromFile(WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szS
 
 
 D3DClass::D3DClass() {
+
     m_driverType = D3D_DRIVER_TYPE_NULL;
     m_featureLevel = D3D_FEATURE_LEVEL_11_0;
     m_pd3dDevice = nullptr;
@@ -140,6 +141,10 @@ bool D3DClass::loadAllMesh() {
     const std::map<int, Mesh*> * _oMeshesMap = AssetsManager::getInstance()->getAllMeshes();
     for (auto _meshMap : *_oMeshesMap) {
         MeshInfo * _meshInfo = new MeshInfo();
+
+        int ss = sizeof(VertexInfo);
+        int sss = sizeof(_meshMap.second->m_iVertexCount);
+
 
         D3D11_BUFFER_DESC bd;
         ZeroMemory(&bd, sizeof(bd));
@@ -472,7 +477,7 @@ bool D3DClass::initialize(unsigned int _iScreenWidth, unsigned int _iScreenHeigh
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
     UINT numElements = ARRAYSIZE(layout);
 
@@ -623,10 +628,10 @@ bool D3DClass::render(const std::vector<GameObject*> * _scene, const std::vector
     //D2D1_SIZE_F _2DSize = m_pBackBufferRT->GetSize();
     for (UIText * _text : *_ui) {
         switch (_text->m_eType) {
-            case UIText::SMALL:
+            case TextType::SMALL:
                 m_pBackBufferRT->DrawText(_text->m_pText, _text->m_iSize, m_pTextFormatS, D2D1::RectF(_text->m_vStartRectPosition.u, _text->m_vStartRectPosition.v, _text->m_vEndRectPosition.u, _text->m_vEndRectPosition.v), m_pBackBufferBrush);
                 break;
-            case UIText::LARGE:
+            case TextType::LARGE:
                 m_pBackBufferRT->DrawText(_text->m_pText, _text->m_iSize, m_pTextFormatL, D2D1::RectF(_text->m_vStartRectPosition.u, _text->m_vStartRectPosition.v, _text->m_vEndRectPosition.u, _text->m_vEndRectPosition.v), m_pBackBufferBrush);
                 break;
             default:

@@ -21,9 +21,6 @@ public:
     virtual bool render(); // Do the rendering for the actual frame
     virtual bool shutdown();
 
-
-    virtual void CameraGoUp();
-
     LRESULT CALLBACK MessageHandler(HWND, UINT, WPARAM, LPARAM);
 
     static GraphicsManager * getInstance();
@@ -34,8 +31,6 @@ private:
 
     unsigned int m_iScreenWidth;
     unsigned int m_iScreenHeight;
-    bool m_bVSyncEnabled;
-    bool m_bFullscreen;
 
     LPCSTR m_sApplicationName;
     HINSTANCE m_hinstance;
@@ -47,6 +42,9 @@ private:
     //OpenGL stuff
     HDC m_hdc; // device context handle
     HGLRC m_hglrc; // OpenGL rendering context
+
+    bool m_bVSyncEnabled;
+    bool m_bFullscreen;
 };
 
 //static WindowsGraphicsManager* ApplicationHandle = 0; ##1##

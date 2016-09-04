@@ -248,11 +248,6 @@ void WindowsGraphicsManager::showWindow() {
     ShowCursor(false);
 }
 
-void WindowsGraphicsManager::CameraGoUp() {
-    m_oCamera.m_afPosition.y += 0.1;
-    m_o3DClass->setCamera(m_oCamera);
-}
-
 LRESULT CALLBACK WindowsGraphicsManager::MessageHandler(HWND hwnd, UINT umsg, WPARAM wparam, LPARAM lparam) {
     return DefWindowProc(hwnd, umsg, wparam, lparam);
 }

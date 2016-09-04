@@ -5,6 +5,7 @@ Ball::Ball() {
 }
 
 Ball::~Ball() {
+    SAFE_DELETE(collider);
 }
 
 void Ball::hit() {

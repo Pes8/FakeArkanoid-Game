@@ -23,7 +23,6 @@
 //C++ Includes
 #include <iostream>
 
-
 int ID::_ID = 0;
 
 #ifdef WINDOWS
@@ -49,10 +48,6 @@ int main() {
     //Setup & Inizialization of all components
     assetsManager->preloadAllAssets();
     gameManager->initialization(systemFactory);
-    
-
-    //Events subscriptions
-    gameManager->OnButtonPressed[UP_BTN].subscribe(std::bind(&GraphicsManager::CameraGoUp, graphicsManager)); //TODO REMOVE
 
     bool not3DError = true;
 
@@ -68,7 +63,7 @@ int main() {
         not3DError = graphicsManager->run();
 
     //Main Cycle
-    while (!GameManager::quit && not3DError) {
+    while (gameManager->getGameState() != GameState::EXIT && not3DError) {
 
         //step -1 : start clock to control FPS
         gameManager->startCheckFPS();

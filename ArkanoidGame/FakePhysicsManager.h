@@ -7,17 +7,20 @@
 
 
 class FakePhysicsManager {
-private:
-    GameObject * player;
-    GameObject * ball;
-
-    bool checkCollision(const GameObject & a, const GameObject & b);
-    void moveObjects();
-    bool isInside(const GameObject & _obj);
-    FakePhysicsManager();
-    static FakePhysicsManager * instance;
 public:
     static FakePhysicsManager * getInstance();
     void doPhysicUpdate();
     void initialization(const GameObject * _player, const GameObject * _ball);
+
+private:
+
+    FakePhysicsManager();
+    bool checkCollision(const GameObject & a, const GameObject & b) const;
+    void moveObjects();
+    bool isInside(const GameObject & _obj) const;
+
+    static FakePhysicsManager * instance;
+    GameObject * player;
+    GameObject * ball;
+
 };

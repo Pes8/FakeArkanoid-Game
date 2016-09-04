@@ -67,6 +67,16 @@ protected:
     }
 
 private:
+    
+    XMMATRIX                     m_World;
+    XMMATRIX                     m_View;
+    XMMATRIX                     m_Projection;
+    
+    ConstantBuffer               m_CB;
+
+    std::map<int, ID3D11ShaderResourceView*> m_oTexMap;
+    std::map<int, MeshInfo *> m_oMeshMap;
+
     D3D_DRIVER_TYPE              m_driverType;
     D3D_FEATURE_LEVEL            m_featureLevel;
     ID3D11Device *               m_pd3dDevice;
@@ -82,9 +92,6 @@ private:
     ID3D11Texture2D *            m_pDepthStencilBuffer;
     ID3D11DepthStencilState *    m_pDepthStencilState;
     ID3D11DepthStencilView *     m_pDepthStencilView;
-    XMMATRIX                     m_World;
-    XMMATRIX                     m_View;
-    XMMATRIX                     m_Projection;
 
     ID2D1Factory *               m_pD2DFactory;
     ID2D1RenderTarget *          m_pBackBufferRT;
@@ -93,11 +100,6 @@ private:
     IDWriteTextFormat *          m_pTextFormatS;
     IDWriteTextFormat *          m_pTextFormatM;
     IDWriteTextFormat *          m_pTextFormatL;
-
-    ConstantBuffer               m_CB;
-
-    std::map<int, ID3D11ShaderResourceView*> m_oTexMap;
-    std::map<int, MeshInfo *> m_oMeshMap;
 
     bool loadAllTextures();
     bool loadAllMesh();

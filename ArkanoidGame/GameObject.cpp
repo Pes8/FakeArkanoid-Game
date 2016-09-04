@@ -8,5 +8,5 @@ GameObject::GameObject() {
 }
 
 GameObject::~GameObject() {
-    SAFE_DELETE(collider);
+    
 }
