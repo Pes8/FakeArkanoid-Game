@@ -15,7 +15,7 @@
 #define DEFAULT_WIDTH 1366
 #define DEFAULT_HEIGHT 768
 #define DEFAULT_FULLSCREEN false
-#define DEFAULT_STARTLIFES 3
+#define DEFAULT_STARTLIVES 3
 #define DEFAULT_VSYNC_ENABLED true
 #define DEFAULT_CAMERA_FAR 1000.0f
 #define DEFAULT_CAMERA_NEAR 0.1f
@@ -65,7 +65,7 @@
 #define PI_DIV_6 0.523598f
 #define PI_DIV_12 0.261799f
 
-#define FPS 90 // Frame Per Seconds
+#define FPS 60 // Frame Per Seconds
 #define uSPF (1000000 / FPS) // Micro-Seconds Per Frame
 
 #define LOCAL_PATH "./Data/"
@@ -74,7 +74,7 @@
 #define LEVEL_PATH LOCAL_PATH "Levels/"
 
 /*CUSTOM TYPES */
-typedef uint16_t ButtonsStatus;
+typedef uint32_t ButtonsStatus;
 typedef void(*FP)();
 
 template<typename  T>
@@ -92,7 +92,7 @@ enum class GameState : char {
 struct GameConfig {
     unsigned int screenWidth = DEFAULT_WIDTH;
     unsigned int screenHeight = DEFAULT_HEIGHT;
-    unsigned int startLife = DEFAULT_STARTLIFES;
+    unsigned int startLife = DEFAULT_STARTLIVES;
     float cameraFar = DEFAULT_CAMERA_FAR;
     float cameraNear = DEFAULT_CAMERA_NEAR;
     float cameraPosition[3] = DEFAULT_CAMERA_POSITION;
@@ -206,7 +206,7 @@ struct Camera {
     float m_fNear;
 };
 
-enum Button : char {
+enum Button : unsigned char {
     QUIT_BTN,
     PAUSE_BTN,
     ENTER_BTN,

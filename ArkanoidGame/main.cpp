@@ -5,7 +5,6 @@
 #include "InputManager.h"
 #include "FakePhysicsManager.h"
 #include "OSHelper.h"
-
 #include "AssetsManager.h"
 
 //ThirdParty includes
@@ -20,8 +19,6 @@
 #include <Windows.h>
 #endif // WINDOWS
 
-//C++ Includes
-#include <iostream>
 
 int ID::_ID = 0;
 
