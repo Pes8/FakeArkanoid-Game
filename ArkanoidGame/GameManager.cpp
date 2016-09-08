@@ -108,12 +108,12 @@ GameManager::GameManager() {
     m_oUIFPSText = new UIText(L"30", 2, { 0.0f, 0.0f }, TextType::SMALL);
     m_oCurrentUI.push_back(m_oUIFPSText);
 #endif // UI_SHOW_FPS
-    m_oUILivesText = new UIText(_itoa(PLAYER_LIVES, buffer, 10), 1, { 100.0f, 570.0f });
+    m_oUILivesText = new UIText(_itoa(PLAYER_LIVES, buffer, 10), 1, { 100.0f, 630.0f });
 
-    m_oCurrentUI.push_back(new UIText(L"Press 'N' to randomize blocks", 30, { 50.0f, 500.0f }, TextType::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Press '0' to '9' to load a level", 33, { 50.0f, 515.0f }, TextType::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Press 'ESC' to Exit", 20, { 50.0f, 530.0f }, TextType::SMALL));
-    m_oCurrentUI.push_back(new UIText(L"Lives: ", 8, { 50.0f, 570.0f }));
+    m_oCurrentUI.push_back(new UIText(L"Press 'N' to randomize blocks", 30, { 50.0f, 550.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Press '0' to '9' to load a level", 33, { 50.0f, 565.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Press 'ESC' to Exit", 20, { 50.0f, 580.0f }, TextType::SMALL));
+    m_oCurrentUI.push_back(new UIText(L"Lives: ", 8, { 50.0f, 630.0f }));
     m_oCurrentUI.push_back(m_oUILivesText);
 
     m_eState = GameState::PLAYING;
@@ -319,7 +319,7 @@ void GameManager::OnBlockDestroyed(int id) {
         m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
         m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, 0.0f, 0.0f };
 
-        m_oCurrentUI.push_back(new UIText(L"YOU WIN!", 9, { 500.0f, 300.0f }, TextType::LARGE));
+        m_oCurrentUI.push_back(new UIText(L"YOU WIN!", 9, { 500.0f, 325.0f }, TextType::LARGE));
     }
 }
 
@@ -328,7 +328,7 @@ void GameManager::OnPlayerDeath() {
     m_oCurrentLevel->m_oBall->m_vPosition = BALL_POSITION;
     m_oCurrentLevel->m_oBall->m_vVelocity = { 0.0f, 0.0f, 0.0f };
     
-    m_oCurrentUI.push_back(new UIText(L"GAME OVER!", 11, { 500.0f, 300.0f }, TextType::LARGE));
+    m_oCurrentUI.push_back(new UIText(L"GAME OVER!", 11, { 500.0f, 325.0f }, TextType::LARGE));
 }
 
 void GameManager::OnLoadLevel(int _level) {

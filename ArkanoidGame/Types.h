@@ -33,7 +33,7 @@
 #define UI_FONT_SIZE_M 18.0f
 #define UI_FONT_SIZE_L 30.0f
 #define UI_SHOW_FPS true
-#define OBJECTS_3D false
+#define OBJECTS_3D false //Set this to TRUE to draw 3D objects instead of qua
 
 #define PLAYER_VELOCITY 0.35f // Horizontal movement
 #define PLAYER_START_POS { 0, - (CAMERA_ORTO_HEIGHT/2 - 1.5f), 0.0f }

@@ -1,3 +1,15 @@
+/*
+    04/09/2016
+
+    Simone Pessotto - Master Game Delopment - Università di Verona
+    Esame di Advanced C++ & Graphics Programming
+
+    Librerie esterne: stb_image.h per il caricamento di immagini
+
+    Build solo per Windows attualmente. 
+
+*/
+
 //My includes
 #include "Types.h"
 #include "SystemFactory.h"

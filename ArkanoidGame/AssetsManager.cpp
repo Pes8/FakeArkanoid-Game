@@ -230,7 +230,7 @@ void AssetsManager::preloadAllAssets() {
 
     m_oMeshMap[PLAYER_INDEX] = create3DAABBMesh(PLAYER_SIZE_X, PLAYER_SIZE_Y, 0.0f, 1.0f, 0.0f, 1.0f);                                     // Player
 
-    m_oMeshMap[BALL_INDEX] = importMeshFromObj(MESH_PATH "test-Sphere.obj"); // Ball
+    m_oMeshMap[BALL_INDEX] = importMeshFromObj(MESH_PATH "Sphere.obj"); // Ball
 #else
     m_oMeshMap[BLOCK_INDEX + 0] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.0f, 0.0f);                    // Red - Normal
     m_oMeshMap[BLOCK_INDEX + 1] = createQuad(BLOCK_SIZE_X, BLOCK_SIZE_Y, 0.0f, 0.25f, 0.0f, 0.25f, 0.25f, 0.0f);                   // Yellow - Normal

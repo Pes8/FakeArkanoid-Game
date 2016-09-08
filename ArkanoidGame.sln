@@ -7,30 +7,18 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArkanoidGame", "ArkanoidGam
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug_Linux|x64 = Debug_Linux|x64
 		Debug_Linux|x86 = Debug_Linux|x86
-		Debug_Windows|x64 = Debug_Windows|x64
 		Debug_Windows|x86 = Debug_Windows|x86
-		Release_Linux|x64 = Release_Linux|x64
 		Release_Linux|x86 = Release_Linux|x86
-		Release_Windows|x64 = Release_Windows|x64
 		Release_Windows|x86 = Release_Windows|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1260E7BB-45BD-40C3-9136-384849963BDB}.Debug_Linux|x64.ActiveCfg = Debug_Linux|x64
-		{1260E7BB-45BD-40C3-9136-384849963BDB}.Debug_Linux|x64.Build.0 = Debug_Linux|x64
 		{1260E7BB-45BD-40C3-9136-384849963BDB}.Debug_Linux|x86.ActiveCfg = Debug_Linux|Win32
 		{1260E7BB-45BD-40C3-9136-384849963BDB}.Debug_Linux|x86.Build.0 = Debug_Linux|Win32
-		{1260E7BB-45BD-40C3-9136-384849963BDB}.Debug_Windows|x64.ActiveCfg = Debug_Windows|x64
-		{1260E7BB-45BD-40C3-9136-384849963BDB}.Debug_Windows|x64.Build.0 = Debug_Windows|x64
 		{1260E7BB-45BD-40C3-9136-384849963BDB}.Debug_Windows|x86.ActiveCfg = Debug_Windows|Win32
 		{1260E7BB-45BD-40C3-9136-384849963BDB}.Debug_Windows|x86.Build.0 = Debug_Windows|Win32
-		{1260E7BB-45BD-40C3-9136-384849963BDB}.Release_Linux|x64.ActiveCfg = Release_Linux|x64
-		{1260E7BB-45BD-40C3-9136-384849963BDB}.Release_Linux|x64.Build.0 = Release_Linux|x64
 		{1260E7BB-45BD-40C3-9136-384849963BDB}.Release_Linux|x86.ActiveCfg = Release_Linux|Win32
 		{1260E7BB-45BD-40C3-9136-384849963BDB}.Release_Linux|x86.Build.0 = Release_Linux|Win32
-		{1260E7BB-45BD-40C3-9136-384849963BDB}.Release_Windows|x64.ActiveCfg = Release_Windows|x64
-		{1260E7BB-45BD-40C3-9136-384849963BDB}.Release_Windows|x64.Build.0 = Release_Windows|x64
 		{1260E7BB-45BD-40C3-9136-384849963BDB}.Release_Windows|x86.ActiveCfg = Release_Windows|Win32
 		{1260E7BB-45BD-40C3-9136-384849963BDB}.Release_Windows|x86.Build.0 = Release_Windows|Win32
 	EndGlobalSection
